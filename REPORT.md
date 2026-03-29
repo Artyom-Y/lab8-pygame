@@ -12,3 +12,7 @@
 ## 3. Key Learnings
 * **Technical Skills:** What CS concepts or tools did you discover or master during this project?
 * **AI Workflow:** How will you change your use of AI tools in your next project?
+
+brainstorm
+
+issues with random_move() inplace
