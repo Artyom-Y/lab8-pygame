@@ -22,3 +22,8 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 29-03-2026 13:15
 - **Prompt**: I think there's must be an error in my thinking, because right now nothing is going on when I launch the game. Can you analyze the square moving logic (functions like #sym:random_move #sym:randomize_dir #sym:update_screen)? I'm confused if we should update the rect's coordinates and then update the screen or is calling rect.move_ip() method enough
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 30-03-2026 11:05
+- **Prompt**: Could you update #file:README.md for this project? Keep in mind that I just started and the app will be updated, but the general idea involves moving squares with pygame. Include overview, setup and usage.
