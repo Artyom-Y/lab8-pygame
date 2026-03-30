@@ -26,13 +26,14 @@ class MovingRect(pygame.rect.Rect):
 
     def __init__(self, x: int, y: int, width: int, height: int) -> None:
         super().__init__((x, y), (width, height))
-        self.speed = CONFIG.max_speed / (width * height)
+        self.speed = randint(2, CONFIG.max_speed) * (1 / width * height)
         self.dir_x = uniform(-self.speed, self.speed)
         self.dir_y = uniform(-self.speed, self.speed)
+        print(self.speed)
 
     def randomize_dir(self) -> None:
-        self.dir_x = uniform(-1, 1)
-        self.dir_y = uniform(-1, 1)
+        self.dir_x = uniform(-self.speed, self.speed)
+        self.dir_y = uniform(-self.speed, self.speed)
 
     def move_dir(self) -> None:
         self.x = self.x + self.dir_x
@@ -92,6 +93,7 @@ def update_screen() -> None:
             if counter == 30:
                 rect.randomize_dir()
         if counter == 30:
+            # TODO change vectors per rect, not at once
             counter = 0
         else:
             counter += 1
