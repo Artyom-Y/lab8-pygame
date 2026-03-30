@@ -9,7 +9,10 @@ class GameConfig:
     width: int = 800
     height: int = 800
     fps: int = 60
-    square_size: int = 20
+    min_square_size: int = 5
+    max_square_size: int = 20
+    square_num = 100
+    max_speed = 10
 
 
 CONFIG = GameConfig()
@@ -23,14 +26,15 @@ class MovingRect(pygame.rect.Rect):
 
     def __init__(self, x: int, y: int, width: int, height: int) -> None:
         super().__init__((x, y), (width, height))
-        self.dir_x = uniform(-1, 1)
-        self.dir_y = uniform(-1, 1)
+        self.speed = CONFIG.max_speed / (width * height)
+        self.dir_x = uniform(-self.speed, self.speed)
+        self.dir_y = uniform(-self.speed, self.speed)
 
     def randomize_dir(self) -> None:
         self.dir_x = uniform(-1, 1)
         self.dir_y = uniform(-1, 1)
 
-    def random_move(self) -> None:
+    def move_dir(self) -> None:
         self.x = self.x + self.dir_x
         self.y = self.y + self.dir_y
 
@@ -61,7 +65,9 @@ def create_moving_rects(n: int) -> list[MovingRect]:
         x = randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
         y = randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
 
-        rects.append(MovingRect(x, y, CONFIG.square_size, CONFIG.square_size))
+        size = randint(CONFIG.min_square_size, CONFIG.max_square_size)
+
+        rects.append(MovingRect(x, y, size, size))
 
     return rects
 
@@ -73,7 +79,7 @@ def update_screen() -> None:
     if SCREEN is None or CLOCK is None:
         raise RuntimeError("Window was not initialized. Call init_window() first.")
 
-    rects = create_moving_rects(10)
+    rects = create_moving_rects(CONFIG.square_num)
 
     counter = 0
     while IS_OPEN:
@@ -81,7 +87,7 @@ def update_screen() -> None:
         SCREEN.fill(pygame.Color(20, 20, 20))  # to clear the screen
 
         for rect in rects:
-            rect.random_move()
+            rect.move_dir()
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
             if counter == 30:
                 rect.randomize_dir()
@@ -98,10 +104,6 @@ def main() -> None:
     init_window()
     update_screen()
     pygame.quit()
-    # rect = MovingRect(0, 0, 10, 10)
-    # print(rect.x, rect.y)
-    # rect.random_move()
-    # print(rect.x, rect.y)
 
 
 if __name__ == "__main__":

@@ -27,3 +27,14 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 30-03-2026 11:05
 - **Prompt**: Could you update #file:README.md for this project? Keep in mind that I just started and the app will be updated, but the general idea involves moving squares with pygame. Include overview, setup and usage.
+
+### **New Interaction**
+- **Agent Version**: 2.2
+- **Date**: 30-03-2026 11:05
+- **User**: artem.iavchunovskii@epita.fr
+- **Prompt**: Could you update #file:README.md for this project? Keep in mind that I just started and the app will be updated, but the general idea involves moving squares with pygame. Include overview, setup and usage.
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.3-Codex
+- **Socratic Mode**: ON
+- **Changes Made**: Replaced empty README with a starter guide including project overview, setup steps, and run instructions tailored to the current moving-squares pygame implementation.
+- **Context and Reasons for Changes**: The project is at an early stage and needed clear onboarding documentation. The README now reflects current behavior while explicitly leaving room for iterative expansion.
