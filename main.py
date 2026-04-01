@@ -1,6 +1,6 @@
 import pygame
 from dataclasses import dataclass
-from random import uniform, randint
+from random import uniform, randint, random
 from typing import Optional
 
 
@@ -11,8 +11,8 @@ class GameConfig:
     fps: int = 60
     min_square_size: int = 5
     max_square_size: int = 20
-    square_num = 100
-    max_speed = 10
+    square_num: int = 100
+    max_speed: int = 20
 
 
 CONFIG = GameConfig()
@@ -26,14 +26,21 @@ class MovingRect(pygame.rect.Rect):
 
     def __init__(self, x: int, y: int, width: int, height: int) -> None:
         super().__init__((x, y), (width, height))
-        self.speed = randint(2, CONFIG.max_speed) * (1 / width * height)
+        self.speed = randint(1, 5) * (CONFIG.max_speed / width)
         self.dir_x = uniform(-self.speed, self.speed)
         self.dir_y = uniform(-self.speed, self.speed)
-        print(self.speed)
+        print(self.speed, self.width * self.height)
 
-    def randomize_dir(self) -> None:
-        self.dir_x = uniform(-self.speed, self.speed)
-        self.dir_y = uniform(-self.speed, self.speed)
+    def randomize_dir(self, chance: int) -> None:
+        """Randomize MovingRect's direction vectors.
+        :param chance: chance that the vector direction will
+        change (0.0 <= chance <= 1.0)
+        """
+        assert chance >= 0.0 and chance <= 1.0, "chance must be within [0.0, 1.0]"
+
+        if random() <= chance:
+            self.dir_x = uniform(-self.speed, self.speed)
+            self.dir_y = uniform(-self.speed, self.speed)
 
     def move_dir(self) -> None:
         self.x = self.x + self.dir_x
@@ -82,7 +89,6 @@ def update_screen() -> None:
 
     rects = create_moving_rects(CONFIG.square_num)
 
-    counter = 0
     while IS_OPEN:
         handle_events()
         SCREEN.fill(pygame.Color(20, 20, 20))  # to clear the screen
@@ -90,13 +96,7 @@ def update_screen() -> None:
         for rect in rects:
             rect.move_dir()
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
-            if counter == 30:
-                rect.randomize_dir()
-        if counter == 30:
-            # TODO change vectors per rect, not at once
-            counter = 0
-        else:
-            counter += 1
+            rect.randomize_dir(0.01)  # edit this to achieve different jitter
 
         pygame.display.flip()
         CLOCK.tick(CONFIG.fps)
