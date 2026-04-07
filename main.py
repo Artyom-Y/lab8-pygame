@@ -1,8 +1,10 @@
 import pygame
 from dataclasses import dataclass
-from random import uniform, randint, random
+import random
+import math
 from typing import Optional
 
+#TODO real time fps counter, particle count
 
 @dataclass
 class GameConfig:
@@ -11,7 +13,7 @@ class GameConfig:
     fps: int = 60
     min_square_size: int = 5
     max_square_size: int = 20
-    square_num: int = 100
+    square_num: int = 20
     max_speed: int = 20
 
 
@@ -26,10 +28,21 @@ class MovingRect(pygame.rect.Rect):
 
     def __init__(self, x: int, y: int, width: int, height: int) -> None:
         super().__init__((x, y), (width, height))
-        self.speed = randint(1, 5) * (CONFIG.max_speed / width)
-        self.dir_x = uniform(-self.speed, self.speed)
-        self.dir_y = uniform(-self.speed, self.speed)
-        print(self.speed, self.width * self.height)
+        self.width = width
+        self.height = height
+        self.speed = self.set_speed()
+        self.vector = self.set_vector()
+
+    def set_speed(self):
+        return random.randint(1, 5) * (CONFIG.max_speed / self.width)
+    
+    def set_vector(self):
+        angle = random.uniform(0, math.pi*2)
+        return pygame.Vector2(math.cos(angle), math.sin(angle)).normalize()
+    
+    def move_dir(self) -> None:
+        self.x = self.x + self.vector.x * self.speed
+        self.y = self.y + self.vector.y * self.speed
 
     def randomize_dir(self, chance: int) -> None:
         """Randomize MovingRect's direction vectors.
@@ -38,13 +51,17 @@ class MovingRect(pygame.rect.Rect):
         """
         assert chance >= 0.0 and chance <= 1.0, "chance must be within [0.0, 1.0]"
 
-        if random() <= chance:
-            self.dir_x = uniform(-self.speed, self.speed)
-            self.dir_y = uniform(-self.speed, self.speed)
+        if random.random() <= chance:
+            cur_vector = self.vector
+            self.vector = cur_vector.rotate_rad(random.uniform(-1, 1))
 
-    def move_dir(self) -> None:
-        self.x = self.x + self.dir_x
-        self.y = self.y + self.dir_y
+    def randomize_speed(self, chance):
+        assert chance >= 0.0 and chance <= 1.0, "chance must be within [0.0, 1.0]"
+
+        if random.random() <= chance:
+            self.speed = self.set_speed()
+
+    
 
 
 def init_window() -> None:
@@ -70,15 +87,14 @@ def create_moving_rects(n: int) -> list[MovingRect]:
 
     rects = []
     for _ in range(n):
-        x = randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
-        y = randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
+        x = random.randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
+        y = random.randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
 
-        size = randint(CONFIG.min_square_size, CONFIG.max_square_size)
+        size = random.randint(CONFIG.min_square_size, CONFIG.max_square_size)
 
         rects.append(MovingRect(x, y, size, size))
 
     return rects
-
 
 def update_screen() -> None:
     """Draw squares and update their position periodically"""
@@ -96,7 +112,8 @@ def update_screen() -> None:
         for rect in rects:
             rect.move_dir()
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
-            rect.randomize_dir(0.01)  # edit this to achieve different jitter
+            rect.randomize_dir(0.1)  # edit this to achieve different jitter
+            rect.randomize_speed(0.01)
 
         pygame.display.flip()
         CLOCK.tick(CONFIG.fps)
