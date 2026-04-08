@@ -28,8 +28,6 @@ class MovingRect(pygame.rect.Rect):
 
     def __init__(self, x: int, y: int, width: int, height: int) -> None:
         super().__init__((x, y), (width, height))
-        self.width = width
-        self.height = height
         self.speed = self.set_speed()
         self.vector = self.set_vector()
 
@@ -52,8 +50,7 @@ class MovingRect(pygame.rect.Rect):
         assert chance >= 0.0 and chance <= 1.0, "chance must be within [0.0, 1.0]"
 
         if random.random() <= chance:
-            cur_vector = self.vector
-            self.vector = cur_vector.rotate_rad(random.uniform(-1, 1))
+            self.vector.rotate_rad(random.uniform(-1, 1))
 
     def randomize_speed(self, chance):
         assert chance >= 0.0 and chance <= 1.0, "chance must be within [0.0, 1.0]"
@@ -96,6 +93,14 @@ def create_moving_rects(n: int) -> list[MovingRect]:
 
     return rects
 
+def wall_bounce_vector(rect: MovingRect) -> None:
+    cur_vector = rect.vector
+    if not ((rect.x > rect.width//2 and rect.x < CONFIG.width - rect.width//2) and (rect.y > rect.height//2 and rect.y < CONFIG.height - rect.height)):
+        side = random.choice([1,-1])
+        cur_vector = cur_vector.rotate_rad(1.57 * side) # randomize bounce direction
+    return cur_vector
+    
+
 def update_screen() -> None:
     """Draw squares and update their position periodically"""
 
@@ -110,9 +115,10 @@ def update_screen() -> None:
         SCREEN.fill(pygame.Color(20, 20, 20))  # to clear the screen
 
         for rect in rects:
+            rect.vector = wall_bounce_vector(rect)
             rect.move_dir()
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
-            rect.randomize_dir(0.1)  # edit this to achieve different jitter
+            rect.randomize_dir(0.02)  # edit this to achieve different jitter
             rect.randomize_speed(0.01)
 
         pygame.display.flip()
