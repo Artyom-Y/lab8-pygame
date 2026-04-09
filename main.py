@@ -5,16 +5,14 @@ import math
 import time
 from typing import Optional
 
-#TODO real time fps counter, particle count
-
 @dataclass
 class GameConfig:
     width: int = 800
     height: int = 800
     fps: int = 60
-    min_square_size: int = 10
+    min_square_size: int = 5
     max_square_size: int = 30
-    square_num: int = 20
+    square_num: int = 10
     max_speed: int = 8
 
 
@@ -116,6 +114,27 @@ def wall_bounce(rect: MovingRect, sec: int) -> MovingRect:
 
     return rect
     
+def find_threat(rect, rects):
+    """Given rectangle, find closest rectangle that's bigger than it"""
+    other_rects = rects.copy()
+    other_rects.remove(rect)
+
+    def distance_to_rect(other):
+        return ((other.x - rect.x) ** 2 + (other.y - rect.y) ** 2) ** 0.5
+    
+    bigger_rects = []
+    rect_area = rect.width * rect.height
+
+    for other_rect in other_rects:
+        if (other_rect.width * other_rect.height) > rect_area:
+            bigger_rects.append(other_rect)
+
+    if bigger_rects:
+        bigger_rects = sorted(bigger_rects, key=distance_to_rect)
+        return bigger_rects[0]
+    else: 
+        return None # The biggest rectangle doesn't have to escape anyone
+
 
 def update_screen() -> None:
     """Draw squares and update their position periodically"""
@@ -132,11 +151,25 @@ def update_screen() -> None:
         dt = CLOCK.tick(CONFIG.fps)
 
         for rect in rects:
-            rect = wall_bounce(rect, 1)
+            rect = wall_bounce(rect, 0.5)
             rect.move_dir(dt)
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
             rect.randomize_dir(0.02)  # edit this to achieve different jitter
             rect.randomize_speed(0.01)
+
+            #running away logic
+            threat = find_threat(rect, rects)
+            if threat:
+                away_dir = (rect.vector - threat.vector).normalize()
+                dist = ((threat.x - rect.x) ** 2 + (threat.y - rect.y) ** 2) ** 0.5
+                coeff = ((threat.width * threat.height)/(dist**2 + 1)) # +1 to prevent division by zero when rect overlap
+                if coeff > 1: # clamp
+                    coeff = 1
+                elif coeff < 0:
+                    coeff = 0
+                new_vect = ((1-coeff)*rect.vector + coeff*away_dir)
+                rect.vector = new_vect
+            
 
         # interface
         fps_counter = pygame.font.Font.render(FONT, f"FPS: {CLOCK.get_fps():.2f}", True, (255, 255, 255))
