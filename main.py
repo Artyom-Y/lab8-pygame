@@ -2,6 +2,7 @@ import pygame
 from dataclasses import dataclass
 import random
 import math
+import time
 from typing import Optional
 
 #TODO real time fps counter, particle count
@@ -11,8 +12,8 @@ class GameConfig:
     width: int = 800
     height: int = 800
     fps: int = 60
-    min_square_size: int = 5
-    max_square_size: int = 20
+    min_square_size: int = 10
+    max_square_size: int = 30
     square_num: int = 20
     max_speed: int = 8
 
@@ -21,6 +22,7 @@ CONFIG = GameConfig()
 SCREEN: Optional[pygame.Surface] = None
 CLOCK: Optional[pygame.time.Clock] = None
 IS_OPEN = False
+FONT: Optional[pygame.font.SysFont] = None
 
 
 class MovingRect(pygame.rect.Rect):
@@ -30,6 +32,8 @@ class MovingRect(pygame.rect.Rect):
         super().__init__((x, y), (width, height))
         self.speed = self.set_speed()
         self.vector = self.set_vector()
+        self.turning = True
+        self.turn_time = time.monotonic()
 
     def set_speed(self):
         return (CONFIG.max_speed / self.width)
@@ -57,19 +61,18 @@ class MovingRect(pygame.rect.Rect):
 
         if random.random() <= chance:
             self.speed = self.set_speed()
-
     
 
 
 def init_window() -> None:
-    global SCREEN, CLOCK, IS_OPEN
+    global SCREEN, CLOCK, IS_OPEN, FONT
 
     pygame.init()
     SCREEN = pygame.display.set_mode((CONFIG.width, CONFIG.height))
     pygame.display.set_caption("Moving squares")
     CLOCK = pygame.time.Clock()
     IS_OPEN = True
-
+    FONT = pygame.font.SysFont("Arial", 18)
 
 def handle_events() -> None:
     global IS_OPEN
@@ -93,13 +96,25 @@ def create_moving_rects(n: int) -> list[MovingRect]:
 
     return rects
 
-def wall_bounce_vector(rect: MovingRect) -> None:
+def wall_bounce(rect: MovingRect, sec: int) -> MovingRect:
     cur_vector = rect.vector
-    if not ((rect.x > rect.width//2 and rect.x < CONFIG.width - rect.width//2) and (rect.y > rect.height//2 and rect.y < CONFIG.height - rect.height)):
-        side = random.choice([1,-1])
-        angle = random.uniform(1.57, math.pi)
-        cur_vector = cur_vector.rotate_rad(angle * side) # randomize bounce direction
-    return cur_vector
+
+    # NOTE: rects would get stuck in a loop of flipping directions when near borders
+    # So I made bouncing have a little cooldown to prevent that (specified by sec parameter)
+    cur_time = time.monotonic()
+    if cur_time - rect.turn_time >= sec:
+        rect.turning = True
+
+    if not ((rect.x > rect.width//2 and rect.x < CONFIG.width - rect.width//2) and (rect.y > rect.height//2 and rect.y < CONFIG.height - rect.height//2)):
+        if rect.turning: # so that rect won't get stuck in a loop of flipping directions
+            rand_angle = random.uniform(-0.5, 0.5)
+            cur_vector = cur_vector.rotate_rad(math.pi + rand_angle) # randomize bounce direction
+            rect.vector = cur_vector
+
+            rect.turn_time = time.monotonic()
+            rect.turning = False
+
+    return rect
     
 
 def update_screen() -> None:
@@ -117,11 +132,18 @@ def update_screen() -> None:
         dt = CLOCK.tick(CONFIG.fps)
 
         for rect in rects:
-            rect.vector = wall_bounce_vector(rect)
+            rect = wall_bounce(rect, 1)
             rect.move_dir(dt)
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
             rect.randomize_dir(0.02)  # edit this to achieve different jitter
             rect.randomize_speed(0.01)
+
+        # interface
+        fps_counter = pygame.font.Font.render(FONT, f"FPS: {CLOCK.get_fps():.2f}", True, (255, 255, 255))
+        rect_counter = pygame.font.Font.render(FONT, f"Rects: {CONFIG.square_num}", True, (255, 255, 255))
+
+        SCREEN.blit(fps_counter, (10, 10))
+        SCREEN.blit(rect_counter, (10, 30))
 
         pygame.display.flip()
         
