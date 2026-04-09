@@ -11,3 +11,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 30-03-2026 11:05
 - **Prompt**: Could you update #file:README.md for this project? Keep in mind that I just started and the app will be updated, but the general idea involves moving squares with pygame. Include overview, setup and usage.
 
+### 09-04-2026 20:52
+- **Prompt**: Hey, I want smaller rectangles to run away from bigger ones. Currently, I find the threat for each rectangle (except the biggest one) and change rectangles vector based on threats vector. It doesn't work very well. Can you give me hints with explanations about how could I do that? The bigger the threat rectangle, the stronger it affects the other rectangle. The bigger the distance between them, the less it affects the other vector. The problem is that in my code, the vector is always normalized, so we can't directly sum vectors. Vector represents direction, speed represents speed of movement. So the question is how do we smoothly change vector's direction based on aforementioned factors
+
