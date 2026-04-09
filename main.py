@@ -14,7 +14,7 @@ class GameConfig:
     min_square_size: int = 5
     max_square_size: int = 20
     square_num: int = 20
-    max_speed: int = 20
+    max_speed: int = 8
 
 
 CONFIG = GameConfig()
@@ -32,15 +32,15 @@ class MovingRect(pygame.rect.Rect):
         self.vector = self.set_vector()
 
     def set_speed(self):
-        return random.randint(1, 5) * (CONFIG.max_speed / self.width)
+        return (CONFIG.max_speed / self.width)
     
     def set_vector(self):
         angle = random.uniform(0, math.pi*2)
         return pygame.Vector2(math.cos(angle), math.sin(angle)).normalize()
     
-    def move_dir(self) -> None:
-        self.x = self.x + self.vector.x * self.speed
-        self.y = self.y + self.vector.y * self.speed
+    def move_dir(self, dt) -> None:
+        self.x = self.x + self.vector.x * self.speed * dt
+        self.y = self.y + self.vector.y * self.speed * dt
 
     def randomize_dir(self, chance: int) -> None:
         """Randomize MovingRect's direction vectors.
@@ -97,7 +97,8 @@ def wall_bounce_vector(rect: MovingRect) -> None:
     cur_vector = rect.vector
     if not ((rect.x > rect.width//2 and rect.x < CONFIG.width - rect.width//2) and (rect.y > rect.height//2 and rect.y < CONFIG.height - rect.height)):
         side = random.choice([1,-1])
-        cur_vector = cur_vector.rotate_rad(1.57 * side) # randomize bounce direction
+        angle = random.uniform(1.57, math.pi)
+        cur_vector = cur_vector.rotate_rad(angle * side) # randomize bounce direction
     return cur_vector
     
 
@@ -113,16 +114,17 @@ def update_screen() -> None:
     while IS_OPEN:
         handle_events()
         SCREEN.fill(pygame.Color(20, 20, 20))  # to clear the screen
+        dt = CLOCK.tick(CONFIG.fps)
 
         for rect in rects:
             rect.vector = wall_bounce_vector(rect)
-            rect.move_dir()
+            rect.move_dir(dt)
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
             rect.randomize_dir(0.02)  # edit this to achieve different jitter
             rect.randomize_speed(0.01)
 
         pygame.display.flip()
-        CLOCK.tick(CONFIG.fps)
+        
 
 
 def main() -> None:
