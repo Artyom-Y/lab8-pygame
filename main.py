@@ -63,6 +63,7 @@ class MovingRect(pygame.rect.Rect):
 
 
 def init_window() -> None:
+    """Initialize pygame window"""
     global SCREEN, CLOCK, IS_OPEN, FONT
 
     pygame.init()
@@ -95,6 +96,7 @@ def create_moving_rects(n: int) -> list[MovingRect]:
     return rects
 
 def wall_bounce(rect: MovingRect, sec: int) -> MovingRect:
+    """Make rectangle change direction if it's near border"""
     cur_vector = rect.vector
 
     # NOTE: rects would get stuck in a loop of flipping directions when near borders
@@ -114,7 +116,7 @@ def wall_bounce(rect: MovingRect, sec: int) -> MovingRect:
 
     return rect
     
-def find_threat(rect, rects):
+def find_threat(rect: MovingRect, rects: list[MovingRect]) -> MovingRect | None:
     """Given rectangle, find closest rectangle that's bigger than it"""
     other_rects = rects.copy()
     other_rects.remove(rect)
@@ -134,6 +136,19 @@ def find_threat(rect, rects):
         return bigger_rects[0]
     else: 
         return None # The biggest rectangle doesn't have to escape anyone
+    
+def escape_threat_vector(rect: MovingRect, threat: MovingRect, k: int) -> pygame.Vector2:
+    """Calculate a new vector for rect to runaway by threat.
+    k is a coefficient describing how fast will rect run away"""
+    away_dir = (rect.vector - threat.vector).normalize()
+    dist = ((threat.x - rect.x) ** 2 + (threat.y - rect.y) ** 2) ** 0.5
+    coeff = (k * (threat.width * threat.height)/(dist**2 + 1)) # +1 to prevent division by zero when rect overlap
+    if coeff > 1: # clamp
+        coeff = 1
+    elif coeff < 0:
+        coeff = 0
+    new_vect = ((1-coeff)*rect.vector + coeff*away_dir)
+    return new_vect
 
 
 def update_screen() -> None:
@@ -160,15 +175,7 @@ def update_screen() -> None:
             #running away logic
             threat = find_threat(rect, rects)
             if threat:
-                away_dir = (rect.vector - threat.vector).normalize()
-                dist = ((threat.x - rect.x) ** 2 + (threat.y - rect.y) ** 2) ** 0.5
-                coeff = ((threat.width * threat.height)/(dist**2 + 1)) # +1 to prevent division by zero when rect overlap
-                if coeff > 1: # clamp
-                    coeff = 1
-                elif coeff < 0:
-                    coeff = 0
-                new_vect = ((1-coeff)*rect.vector + coeff*away_dir)
-                rect.vector = new_vect
+                rect.vector = escape_threat_vector(rect, threat, 3)
             
 
         # interface
