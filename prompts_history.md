@@ -29,3 +29,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 13-04-2026 11:33
 - **Prompt**: generate the code explorer site for this project
 
+### 13-04-2026 11:34
+- **Prompt**: Generate the code explorer site for the python project. Please provide the full raw HTML code for the single combined-depth HTML dashboard in your final response so I can save it to a file.
+
