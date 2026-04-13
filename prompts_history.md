@@ -17,3 +17,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 09-04-2026 21:05
 - **Prompt**: Let's focus on formulas you suggested. First one, why do you turn d into a unit vector? Second what is k and epsilon? Fourth, what exactly are lambda and delta t? Is delta t delta time? And what is this formula used for? Maybe explain your idea as a whole
 
+### 13-04-2026 11:23
+- **Prompt**: activate the journal logger
+

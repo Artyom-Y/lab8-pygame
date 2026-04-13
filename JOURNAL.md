@@ -48,3 +48,8 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 09-04-2026 21:05
 - **Prompt**: Let's focus on formulas you suggested. First one, why do you turn d into a unit vector? Second what is k and epsilon? Fourth, what exactly are lambda and delta t? Is delta t delta time? And what is this formula used for? Maybe explain your idea as a whole
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 13-04-2026 11:23
+- **Prompt**: activate the journal logger
