@@ -104,20 +104,18 @@ def wall_bounce(rect: MovingRect) -> MovingRect:
 
     return rect
     
-def find_threat(rect: MovingRect, rects: list[MovingRect]) -> MovingRect | None:
+def find_threat(running_rect: MovingRect, rects: list[MovingRect]) -> MovingRect | None:
     """Given rectangle, find closest rectangle that's bigger than it"""
-    other_rects = rects.copy()
-    other_rects.remove(rect)
 
     def distance_to_rect(other):
-        return ((other.x - rect.x) ** 2 + (other.y - rect.y) ** 2) ** 0.5
+        return ((other.x - running_rect.x) ** 2 + (other.y - running_rect.y) ** 2) ** 0.5
     
     bigger_rects = []
-    rect_area = rect.width * rect.height
+    running_rect_area = running_rect.width * running_rect.height
 
-    for other_rect in other_rects:
-        if (other_rect.width * other_rect.height) > rect_area:
-            bigger_rects.append(other_rect)
+    for rect in rects:
+        if (rect.width * rect.height) > running_rect_area:
+            bigger_rects.append(rect)
 
     if bigger_rects:
         bigger_rects = sorted(bigger_rects, key=distance_to_rect)
