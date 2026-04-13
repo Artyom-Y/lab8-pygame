@@ -2,7 +2,6 @@ import pygame
 from dataclasses import dataclass
 import random
 import math
-import time
 from typing import Optional
 
 @dataclass
@@ -30,8 +29,6 @@ class MovingRect(pygame.rect.Rect):
         super().__init__((x, y), (width, height))
         self.speed = self.set_speed()
         self.vector = self.set_vector()
-        self.turning = True
-        self.turn_time = time.monotonic()
 
     def set_speed(self):
         return (CONFIG.max_speed / self.width)
@@ -95,24 +92,15 @@ def create_moving_rects(n: int) -> list[MovingRect]:
 
     return rects
 
-def wall_bounce(rect: MovingRect, sec: int) -> MovingRect:
+def wall_bounce(rect: MovingRect) -> MovingRect:
     """Make rectangle change direction if it's near border"""
-    cur_vector = rect.vector
+    if rect.x <= 0 or rect.x >= CONFIG.width - rect.width:
+        rect.vector.x *= -1
+        rect.x = max(0, min(rect.x, CONFIG.width - rect.width))
 
-    # NOTE: rects would get stuck in a loop of flipping directions when near borders
-    # So I made bouncing have a little cooldown to prevent that (specified by sec parameter)
-    cur_time = time.monotonic()
-    if cur_time - rect.turn_time >= sec:
-        rect.turning = True
-
-    if not ((rect.x > rect.width//2 and rect.x < CONFIG.width - rect.width//2) and (rect.y > rect.height//2 and rect.y < CONFIG.height - rect.height//2)):
-        if rect.turning: # so that rect won't get stuck in a loop of flipping directions
-            rand_angle = random.uniform(-0.5, 0.5)
-            cur_vector = cur_vector.rotate_rad(math.pi + rand_angle) # randomize bounce direction
-            rect.vector = cur_vector
-
-            rect.turn_time = time.monotonic()
-            rect.turning = False
+    if rect.y <= 0 or rect.y >= CONFIG.height - rect.height:
+        rect.vector.y *= -1
+        rect.y = max(0, min(rect.y, CONFIG.height - rect.height))
 
     return rect
     
@@ -166,7 +154,7 @@ def update_screen() -> None:
         dt = CLOCK.tick(CONFIG.fps)
 
         for rect in rects:
-            rect = wall_bounce(rect, 0.5)
+            rect = wall_bounce(rect)
             rect.move_dir(dt)
             pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
             rect.randomize_dir(0.02)  # edit this to achieve different jitter
@@ -175,7 +163,7 @@ def update_screen() -> None:
             #running away logic
             threat = find_threat(rect, rects)
             if threat:
-                rect.vector = escape_threat_vector(rect, threat, 3)
+                rect.vector = escape_threat_vector(rect, threat, 5)
             
 
         # interface
