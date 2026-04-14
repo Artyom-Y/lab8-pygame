@@ -6,11 +6,12 @@ This is an early version and the project will evolve over time. The current goal
 
 ## Overview
 
-- Creates an `800x800` pygame window.
-- Spawns multiple square objects near the center of the screen.
-- Moves each square every frame using direction values (`dir_x`, `dir_y`).
+- Creates a pygame window.
+- Spawns multiple square objects.
+- Moves each square every frame using direction vector mulitplied by speed vector.
 - Randomizes movement direction periodically.
 - Runs at a fixed FPS loop and handles window-close events.
+- Misc features like wall bouncing, smaller rectangles running away from bigger ones, lifespan
 
 Core implementation lives in `main.py` and uses:
 
@@ -35,12 +36,6 @@ python -m venv env
 pip install -r requirements.txt
 ```
 
-If `requirements.txt` is not populated yet, install pygame directly:
-
-```powershell
-pip install pygame
-```
-
 ## Usage
 
 Run the app from the project root:
@@ -49,17 +44,4 @@ Run the app from the project root:
 python main.py
 ```
 
-What you should see:
-
-- A dark background window.
-- Blue squares moving continuously.
-- Motion directions changing every short interval.
-
 Close the window to stop the app.
-
-## Next Iterations (Planned)
-
-- Add edge/boundary behavior (bounce or wrap).
-- Add keyboard input for interaction.
-- Add score/state display and cleaner game structure.
-- Add tests for non-visual logic where practical.

@@ -12,7 +12,7 @@ class GameConfig:
     min_square_size: int = 5
     max_square_size: int = 30
     square_num: int = 10
-    max_speed: int = 8
+    max_speed: int = 5
 
 
 CONFIG = GameConfig()
@@ -29,6 +29,7 @@ class MovingRect(pygame.rect.Rect):
         super().__init__((x, y), (width, height))
         self.speed = self.set_speed()
         self.vector = self.set_vector()
+        self.area = self.width * self.height
 
     def set_speed(self):
         return (CONFIG.max_speed / self.width)
@@ -51,7 +52,11 @@ class MovingRect(pygame.rect.Rect):
         if random.random() <= chance:
             self.vector.rotate_rad(random.uniform(-1, 1))
 
-    def randomize_speed(self, chance):
+    def randomize_speed(self, chance: int) -> None:
+        """Randomize MovingRect's speed scalar.
+        :param chance: chance that the speed will
+        change (0.0 <= chance <= 1.0)
+        """
         assert chance >= 0.0 and chance <= 1.0, "chance must be within [0.0, 1.0]"
 
         if random.random() <= chance:
@@ -107,28 +112,30 @@ def wall_bounce(rect: MovingRect) -> MovingRect:
 def find_threat(running_rect: MovingRect, rects: list[MovingRect]) -> MovingRect | None:
     """Given rectangle, find closest rectangle that's bigger than it"""
 
-    def distance_to_rect(other):
-        return ((other.x - running_rect.x) ** 2 + (other.y - running_rect.y) ** 2) ** 0.5
+    def sq_distance_to_rect(other):
+        return ((other.centerx - running_rect.centerx) ** 2 + (other.centery - running_rect.centery) ** 2)
     
-    bigger_rects = []
-    running_rect_area = running_rect.width * running_rect.height
+    # by_dist_rects = sorted(rects, key=distance_to_rect)[1:] # first rect is running_rect
+    running_rect_area = running_rect.area
+
+    threat = None
+    min_dist = math.inf # distance between rectangles will always be less than this
 
     for rect in rects:
-        if (rect.width * rect.height) > running_rect_area:
-            bigger_rects.append(rect)
+        if rect is running_rect:
+            continue
+        threat_dist = sq_distance_to_rect(rect)
+        if (rect.area) > running_rect_area and threat_dist < min_dist:
+            threat, min_dist = rect, threat_dist
+    return threat
 
-    if bigger_rects:
-        bigger_rects = sorted(bigger_rects, key=distance_to_rect)
-        return bigger_rects[0]
-    else: 
-        return None # The biggest rectangle doesn't have to escape anyone
     
 def escape_threat_vector(rect: MovingRect, threat: MovingRect, k: int) -> pygame.Vector2:
     """Calculate a new vector for rect to runaway by threat.
     k is a coefficient describing how fast will rect run away"""
     away_dir = (rect.vector - threat.vector).normalize()
     dist = ((threat.x - rect.x) ** 2 + (threat.y - rect.y) ** 2) ** 0.5
-    coeff = (k * (threat.width * threat.height)/(dist**2 + 1)) # +1 to prevent division by zero when rect overlap
+    coeff = (k * (threat.width * threat.height)/(dist**2 + 0.001)) # +0.001 to prevent division by zero when rect's overlap
     if coeff > 1: # clamp
         coeff = 1
     elif coeff < 0:
