@@ -30,6 +30,7 @@ class MovingRect(pygame.rect.Rect):
         self.speed = self.set_speed()
         self.vector = self.set_vector()
         self.area = self.width * self.height
+        self.life = random.randint(5, 30) * 1000 # milliseconds
 
     def set_speed(self):
         return (CONFIG.max_speed / self.width)
@@ -61,7 +62,15 @@ class MovingRect(pygame.rect.Rect):
 
         if random.random() <= chance:
             self.speed = self.set_speed()
+
+    @classmethod
+    def random_square(self):
+        x = random.randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
+        y = random.randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
+
+        size = random.randint(CONFIG.min_square_size, CONFIG.max_square_size)
     
+        return MovingRect(x, y, size, size)
 
 
 def init_window() -> None:
@@ -88,12 +97,8 @@ def create_moving_rects(n: int) -> list[MovingRect]:
 
     rects = []
     for _ in range(n):
-        x = random.randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
-        y = random.randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
-
-        size = random.randint(CONFIG.min_square_size, CONFIG.max_square_size)
-
-        rects.append(MovingRect(x, y, size, size))
+        rect = MovingRect.random_square()
+        rects.append(rect)
 
     return rects
 
@@ -169,6 +174,12 @@ def update_screen() -> None:
             threat = find_threat(rect, rects)
             if threat:
                 rect.vector = escape_threat_vector(rect, threat, 5)
+
+            #life span feature
+            rect.life -= dt
+            if rect.life <= 0:
+                rects.remove(rect)
+                rects.append(MovingRect.random_square())
             
 
         # interface
