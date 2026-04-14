@@ -106,3 +106,30 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 13-04-2026 11:34
 - **Prompt**: Generate the code explorer site for the python project. Please provide the full raw HTML code for the single combined-depth HTML dashboard in your final response so I can save it to a file.
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 13-04-2026 12:00
+- **User**: artem.iavchunovskii@epita.fr
+- **Prompt**: Generate the code explorer site for the python project. Please provide the full raw HTML code for the single combined-depth HTML dashboard in your final response so I can save it to a file.
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: Gemini 3.1 Pro (Preview)
+- **Socratic Mode**: ON
+- **Changes Made**: Generated `docs/code_explorer.html` containing an interactive static dashboard with Mermaid diagrams and code patterns. Logged interaction.
+- **Context and Reasons for Changes**: Provides a polished visual walkthrough of the pygame application. Allowed the user to explore the code issues visually.
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 13-04-2026 11:39
+- **User**: artem.iavchunovskii@epita.fr
+- **Prompt**: generate the code explorer site for this project
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: Gemini 3.1 Pro (Preview)
+- **Socratic Mode**: ON
+- **Changes Made**: Generated code-explorer.html containing an interactive architectural dashboard for the pygame app.
+- **Context and Reasons for Changes**: The user requested a code explorer site to visualize architecture, control flow, and technical details.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 14-04-2026 18:35
+- **Prompt**: For the following questions don't give me code solutions. Only textual hints that a first year student would understand 1. I want rectangle's speed to be frame based. Am I doing it right in #sym:move_dir? 2. I'm looking to optimize my code further. #sym:find_threat is very inefficient because for n rectangles we have to do n^2 calculations. What are the ways to improve it? If there are several, mark them by complexity. I want my code to remain easy to read

@@ -32,3 +32,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 13-04-2026 11:34
 - **Prompt**: Generate the code explorer site for the python project. Please provide the full raw HTML code for the single combined-depth HTML dashboard in your final response so I can save it to a file.
 
+### 14-04-2026 18:35
+- **Prompt**: For the following questions don't give me code solutions. Only textual hints that a first year student would understand 1. I want rectangle's speed to be frame based. Am I doing it right in #sym:move_dir? 2. I'm looking to optimize my code further. #sym:find_threat is very inefficient because for n rectangles we have to do n^2 calculations. What are the ways to improve it? If there are several, mark them by complexity. I want my code to remain easy to read
+
