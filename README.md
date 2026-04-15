@@ -11,9 +11,9 @@ This is an early version and the project will evolve over time. The current goal
 - Moves each square every frame using direction vector mulitplied by speed vector.
 - Randomizes movement direction periodically.
 - Runs at a fixed FPS loop and handles window-close events.
-- Misc features like wall bouncing, smaller rectangles running away from bigger ones, lifespan
+- Misc features like wall bouncing, randomized direction/speed, smaller rectangles running away from bigger ones, rectangle life span
 
-Core implementation lives in `main.py` and uses:
+Main code elements:
 
 - `GameConfig` for window and game constants.
 - `MovingRect` (subclass of `pygame.Rect`) for per-square movement logic.
@@ -43,5 +43,4 @@ Run the app from the project root:
 ```powershell
 python main.py
 ```
-
 Close the window to stop the app.

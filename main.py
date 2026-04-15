@@ -15,10 +15,10 @@ class GameConfig:
     max_speed: int = 5
 
 
-CONFIG = GameConfig()
+CONFIG: GameConfig = GameConfig()
 SCREEN: pygame.Surface = None
 CLOCK: pygame.time.Clock = None
-IS_OPEN = False
+IS_OPEN: bool = False
 FONT: pygame.font.SysFont = None
 REBIRTH_SOUND: pygame.mixer.Sound = None
 START_COLOR: pygame.Color = None
@@ -68,8 +68,8 @@ class MovingRect(pygame.rect.Rect):
         if random.random() <= chance:
             self.speed = self.set_speed()
 
-    @classmethod
-    def random_square(self):
+    @staticmethod
+    def random_square():
         x = random.randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
         y = random.randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
 
@@ -156,8 +156,8 @@ def escape_threat_vector(rect: MovingRect, threat: MovingRect, k: int) -> pygame
     """Calculate a new vector for rect to runaway by threat.
     k is a coefficient describing how fast will rect run away"""
     away_dir = (rect.vector - threat.vector).normalize()
-    dist = ((threat.x - rect.x) ** 2 + (threat.y - rect.y) ** 2) ** 0.5
-    coeff = (k * (threat.width * threat.height)/(dist**2 + 0.001)) # +0.001 to prevent division by zero when rect's overlap
+    dist = ((threat.x - rect.x) ** 2 + (threat.y - rect.y) ** 2)
+    coeff = (k * (threat.width * threat.height)/(dist + 0.001)) # +0.001 to prevent division by zero when rect's overlap
     if coeff > 1: # clamp
         coeff = 1
     elif coeff < 0:
