@@ -20,7 +20,8 @@ SCREEN: Optional[pygame.Surface] = None
 CLOCK: Optional[pygame.time.Clock] = None
 IS_OPEN = False
 FONT: Optional[pygame.font.SysFont] = None
-
+START_COLOR: pygame.Color = pygame.Color(66, 135, 245)
+END_COLOR: pygame.Color = pygame.Color(245, 66, 66)
 
 class MovingRect(pygame.rect.Rect):
     """Subclass of pygame.rect with direction properties"""
@@ -30,7 +31,10 @@ class MovingRect(pygame.rect.Rect):
         self.speed = self.set_speed()
         self.vector = self.set_vector()
         self.area = self.width * self.height
-        self.life = random.randint(5, 30) * 1000 # milliseconds
+        self.max_life = random.randint(5, 30) * 1000 # milliseconds, used for calculating color
+        self.curr_life = self.max_life
+        self.color = START_COLOR
+
 
     def set_speed(self):
         return (CONFIG.max_speed / self.width)
@@ -71,6 +75,12 @@ class MovingRect(pygame.rect.Rect):
         size = random.randint(CONFIG.min_square_size, CONFIG.max_square_size)
     
         return MovingRect(x, y, size, size)
+    
+    @staticmethod
+    def lerp_color(first:pygame.Color, second:pygame.Color, t: float) -> pygame.Color:
+        """Linear interpolation between two colors based on coefficient t.
+        Credits to https://www.reddit.com/r/pygame/comments/a26i7u/comment/eawhe0a"""
+        return pygame.Color(*[int((1 - t) * v0 + t * v1) for v0, v1 in zip(first, second)])
 
 
 def init_window() -> None:
@@ -166,7 +176,9 @@ def update_screen() -> None:
         for rect in rects:
             rect = wall_bounce(rect)
             rect.move_dir(dt)
-            pygame.draw.rect(SCREEN, pygame.Color(66, 135, 245), rect)
+            t = rect.curr_life / rect.max_life
+            rect.color = MovingRect.lerp_color(END_COLOR, START_COLOR, t)
+            pygame.draw.rect(SCREEN, rect.color, rect)
             rect.randomize_dir(0.02)  # edit this to achieve different jitter
             rect.randomize_speed(0.01)
 
@@ -176,8 +188,8 @@ def update_screen() -> None:
                 rect.vector = escape_threat_vector(rect, threat, 5)
 
             #life span feature
-            rect.life -= dt
-            if rect.life <= 0:
+            rect.curr_life -= dt
+            if rect.curr_life <= 0:
                 rects.remove(rect)
                 rects.append(MovingRect.random_square())
             
