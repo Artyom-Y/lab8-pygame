@@ -138,3 +138,8 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 14-04-2026 19:19
 - **Prompt**: Hey, I tried applying first two approaches you gave me. I made area MovingRect's property instead of recalculating it each time. I changed #sym:sq_distance_to_rect formula to compare squares (no root calculation). Then, i made it so that we pick first rectangle that's not running_rect as a threat and then in one pass we find the threat. Though this doesn't correctly calculate threat for the biggest rectangle. It should return None, but my code will return some random vector as a threat.  Could you give me concise ideas on how to fix this particular issue and my function in general?
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 15-04-2026 19:14
+- **Prompt**: Generate learning site for this project (main.py). Use code-explorer agent. Be sure to save the result in docs folder
