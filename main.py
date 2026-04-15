@@ -16,12 +16,13 @@ class GameConfig:
 
 
 CONFIG = GameConfig()
-SCREEN: Optional[pygame.Surface] = None
-CLOCK: Optional[pygame.time.Clock] = None
+SCREEN: pygame.Surface = None
+CLOCK: pygame.time.Clock = None
 IS_OPEN = False
-FONT: Optional[pygame.font.SysFont] = None
-START_COLOR: pygame.Color = pygame.Color(66, 135, 245)
-END_COLOR: pygame.Color = pygame.Color(245, 66, 66)
+FONT: pygame.font.SysFont = None
+REBIRTH_SOUND: pygame.mixer.Sound = None
+START_COLOR: pygame.Color = None
+END_COLOR: pygame.Color = None
 
 class MovingRect(pygame.rect.Rect):
     """Subclass of pygame.rect with direction properties"""
@@ -31,7 +32,7 @@ class MovingRect(pygame.rect.Rect):
         self.speed = self.set_speed()
         self.vector = self.set_vector()
         self.area = self.width * self.height
-        self.max_life = random.randint(5, 30) * 1000 # milliseconds, used for calculating color
+        self.max_life = random.randint(7, 25) * 1000 # milliseconds, used for calculating color
         self.curr_life = self.max_life
         self.color = START_COLOR
 
@@ -85,14 +86,20 @@ class MovingRect(pygame.rect.Rect):
 
 def init_window() -> None:
     """Initialize pygame window"""
-    global SCREEN, CLOCK, IS_OPEN, FONT
+    global SCREEN, CLOCK, IS_OPEN, FONT, START_COLOR, END_COLOR, REBIRTH_SOUND
 
     pygame.init()
     SCREEN = pygame.display.set_mode((CONFIG.width, CONFIG.height))
     pygame.display.set_caption("Moving squares")
     CLOCK = pygame.time.Clock()
-    IS_OPEN = True
     FONT = pygame.font.SysFont("Arial", 18)
+    pygame.mixer.init()
+    REBIRTH_SOUND = pygame.mixer.Sound("media/pop.mp3")
+    REBIRTH_SOUND.set_volume(0.5)
+    START_COLOR = pygame.Color(66, 135, 245)
+    END_COLOR = pygame.Color(245, 66, 66)
+
+    IS_OPEN = True
 
 def handle_events() -> None:
     global IS_OPEN
@@ -192,6 +199,7 @@ def update_screen() -> None:
             if rect.curr_life <= 0:
                 rects.remove(rect)
                 rects.append(MovingRect.random_square())
+                REBIRTH_SOUND.play()
             
 
         # interface
