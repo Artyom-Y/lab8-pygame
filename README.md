@@ -38,6 +38,8 @@ pip install -r requirements.txt
 
 ## Usage
 
+Configure GameConfig, MovingRect and init_window() to your liking
+
 Run the app from the project root:
 
 ```powershell

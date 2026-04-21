@@ -1,3 +1,5 @@
+# TODO make vector calculation account for prey, optimize wall bounce, correctly remove dead squares, regenerate code explorer
+
 import pygame
 from dataclasses import dataclass
 import random
@@ -32,7 +34,7 @@ class MovingRect(pygame.rect.Rect):
         self.speed = self.set_speed()
         self.vector = self.set_vector()
         self.area = self.width * self.height
-        self.max_life = random.randint(7, 25) * 1000 # milliseconds, used for calculating color
+        self.max_life = random.randint(10, 25) * 1000 # milliseconds, used for calculating color
         self.curr_life = self.max_life
         self.color = START_COLOR
 
@@ -119,20 +121,22 @@ def create_moving_rects(n: int) -> list[MovingRect]:
 
     return rects
 
-def wall_bounce(rect: MovingRect) -> MovingRect:
+def wall_bounce(rect: MovingRect, dt: int) -> MovingRect:
     """Make rectangle change direction if it's near border"""
-    if rect.x <= 0 or rect.x >= CONFIG.width - rect.width:
+    new_x = rect.x + rect.vector.x * rect.speed * dt
+    new_y = rect.y + rect.vector.y * rect.speed * dt
+    if new_x <= 0 or new_x + rect.width >= CONFIG.width:
         rect.vector.x *= -1
         rect.x = max(0, min(rect.x, CONFIG.width - rect.width))
 
-    if rect.y <= 0 or rect.y >= CONFIG.height - rect.height:
+    if new_y <= 0 or new_y + rect.height >= CONFIG.height:
         rect.vector.y *= -1
         rect.y = max(0, min(rect.y, CONFIG.height - rect.height))
 
     return rect
     
-def find_threat(running_rect: MovingRect, rects: list[MovingRect]) -> MovingRect | None:
-    """Given rectangle, find closest rectangle that's bigger than it"""
+def find_threat_and_prey(running_rect: MovingRect, rects: list[MovingRect]) -> tuple[MovingRect | None, MovingRect | None]:
+    """Given rectangle, find closest rectangle that's bigger than it (threat) and smaller (prey)"""
 
     def sq_distance_to_rect(other):
         return ((other.centerx - running_rect.centerx) ** 2 + (other.centery - running_rect.centery) ** 2)
@@ -141,15 +145,20 @@ def find_threat(running_rect: MovingRect, rects: list[MovingRect]) -> MovingRect
     running_rect_area = running_rect.area
 
     threat = None
-    min_dist = math.inf # distance between rectangles will always be less than this
+    min_threat_dist = math.inf # distance between rectangles will always be less than this
+    prey = None
+    min_prey_dist = math.inf
 
     for rect in rects:
         if rect is running_rect:
             continue
-        threat_dist = sq_distance_to_rect(rect)
-        if (rect.area) > running_rect_area and threat_dist < min_dist:
-            threat, min_dist = rect, threat_dist
-    return threat
+        dist = sq_distance_to_rect(rect)
+        if (rect.area) > running_rect_area and dist < min_threat_dist:
+            threat, min_threat_dist = rect, dist
+        elif (rect.area) < running_rect_area and dist < min_prey_dist:
+            prey, min_prey_dist = rect, dist
+
+    return threat, prey
 
     
 def escape_threat_vector(rect: MovingRect, threat: MovingRect, k: int) -> pygame.Vector2:
@@ -180,31 +189,42 @@ def update_screen() -> None:
         SCREEN.fill(pygame.Color(20, 20, 20))  # to clear the screen
         dt = CLOCK.tick(CONFIG.fps)
 
+        alive = []
+        respawn_count = 0
+
         for rect in rects:
-            rect = wall_bounce(rect)
+            rect = wall_bounce(rect, dt)
             rect.move_dir(dt)
+
             t = rect.curr_life / rect.max_life
             rect.color = MovingRect.lerp_color(END_COLOR, START_COLOR, t)
             pygame.draw.rect(SCREEN, rect.color, rect)
+
             rect.randomize_dir(0.02)  # edit this to achieve different jitter
             rect.randomize_speed(0.01)
 
-            #running away logic
-            threat = find_threat(rect, rects)
+            #running away/chasing after logic
+            threat, prey = find_threat_and_prey(rect, rects)
             if threat:
                 rect.vector = escape_threat_vector(rect, threat, 5)
 
             #life span feature
             rect.curr_life -= dt
             if rect.curr_life <= 0:
-                rects.remove(rect)
-                rects.append(MovingRect.random_square())
+                respawn_count += 1
                 REBIRTH_SOUND.play()
+            else:
+                alive.append(rect)
+
+        rects = alive
+
+        for _ in range(respawn_count):
+            rects.append(MovingRect.random_square())
             
 
         # interface
         fps_counter = pygame.font.Font.render(FONT, f"FPS: {CLOCK.get_fps():.2f}", True, (255, 255, 255))
-        rect_counter = pygame.font.Font.render(FONT, f"Rects: {CONFIG.square_num}", True, (255, 255, 255))
+        rect_counter = pygame.font.Font.render(FONT, f"Total rects: {CONFIG.square_num}", True, (255, 255, 255))
 
         SCREEN.blit(fps_counter, (10, 10))
         SCREEN.blit(rect_counter, (10, 30))

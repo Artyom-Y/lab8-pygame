@@ -9,3 +9,10 @@ Each square should have its dir_x and dir_y modified based on size of nearby squ
 
 ### Lifecycle
 I'm gonna change spawning squares to be a class method. Then I'll add a property which defines the life time of a square. At the end of each frame I subtract delta time from square's life. If it's less than zero, I remove this rect from rects list and delete the object. After, I add a new object to the list. Having rect's color change based on it's health would be a nice feature, but maybe a little complicated
+
+### Chase feature
+Each loop, the vector of every rect but one (the biggest) gets updated. So the easiest (albeit not super optmized) approach which won't require much rewriting is
+1. For each square, find the threat (already implemented: find_threat function)
+2. Then find prey for each square (to implement: find_prey function. Or repurpose find_threat to be find_threat_and_prey)
+3. Update the vector
+I have two optimization concerns. Firstly, we don't want to iterate through rectangles twice in search of threat and prey. This is more cost-heavy of the two. The other concern is us having to adjust the vector two times: to escape and to chase. This is less computation heavy. But also there's a logical concern: do we prioritze chasing or escaping? Can we do it at the same time? And will it involve three point linear interpolation?
