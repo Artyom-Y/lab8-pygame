@@ -11,7 +11,7 @@ This is an early version and the project will evolve over time. The current goal
 - Moves each square every frame using direction vector mulitplied by speed vector.
 - Randomizes movement direction periodically.
 - Runs at a fixed FPS loop and handles window-close events.
-- Misc features like wall bouncing, randomized direction/speed, smaller rectangles running away from bigger ones, rectangle life span
+- Misc features like wall bouncing, randomized direction/speed, rectangles chasing smaller ones and escpaing those which are bigger, rectangle life span
 
 Main code elements:
 
