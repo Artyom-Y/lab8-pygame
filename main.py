@@ -1,5 +1,3 @@
-# TODO make vector calculation account for prey, optimize wall bounce, correctly remove dead squares, regenerate code explorer
-
 import pygame
 from dataclasses import dataclass
 import random
@@ -141,7 +139,6 @@ def find_threat_and_prey(running_rect: MovingRect, rects: list[MovingRect]) -> t
     def sq_distance_to_rect(other):
         return ((other.centerx - running_rect.centerx) ** 2 + (other.centery - running_rect.centery) ** 2)
     
-    # by_dist_rects = sorted(rects, key=distance_to_rect)[1:] # first rect is running_rect
     running_rect_area = running_rect.area
 
     threat = None
@@ -153,27 +150,40 @@ def find_threat_and_prey(running_rect: MovingRect, rects: list[MovingRect]) -> t
         if rect is running_rect:
             continue
         dist = sq_distance_to_rect(rect)
-        if (rect.area) > running_rect_area and dist < min_threat_dist:
+        if rect.area > running_rect_area and dist < min_threat_dist:
             threat, min_threat_dist = rect, dist
-        elif (rect.area) < running_rect_area and dist < min_prey_dist:
+        elif rect.area < running_rect_area and dist < min_prey_dist:
             prey, min_prey_dist = rect, dist
 
     return threat, prey
 
     
-def escape_threat_vector(rect: MovingRect, threat: MovingRect, k: int) -> pygame.Vector2:
-    """Calculate a new vector for rect to runaway by threat.
-    k is a coefficient describing how fast will rect run away"""
-    away_dir = (rect.vector - threat.vector).normalize()
-    dist = ((threat.x - rect.x) ** 2 + (threat.y - rect.y) ** 2)
-    coeff = (k * (threat.width * threat.height)/(dist + 0.001)) # +0.001 to prevent division by zero when rect's overlap
-    if coeff > 1: # clamp
-        coeff = 1
-    elif coeff < 0:
-        coeff = 0
-    new_vect = ((1-coeff)*rect.vector + coeff*away_dir)
-    return new_vect
+def run_and_chase_vect(rect: MovingRect, threat: MovingRect | None, prey: MovingRect | None, k: int) -> pygame.Vector2:
+    """Calculate a new vector for rect to runaway from threat and chase the prey.
+    k is a coefficient describing how fast will rect run away.
+    Running away is prioritized to chasing. If the square has no threats, it's only concerned with chasing
+    (and vice versa for the smallest one)"""
 
+    run_vect = pygame.Vector2()
+    chase_vect = pygame.Vector2()
+    danger = 0.5 # the biggest square will always lerp into new vector at this rate
+
+    if threat:
+        run_vect.update(rect.x - threat.x, rect.y - threat.y)
+
+        dist = run_vect.length_squared()
+        danger = (k * (threat.width * threat.height)/(dist + 0.001)) # +0.001 to prevent division by zero when rect's overlap
+        if danger > 1: # clamp
+            danger = 1
+        elif danger < 0:
+            danger = 0
+
+    if prey:
+        chase_vect.update(prey.x - rect.x, prey.y - rect.y)
+
+    new_vect = (run_vect + chase_vect).normalize()
+
+    return (1-danger) * rect.vector + danger * new_vect
 
 def update_screen() -> None:
     """Draw squares and update their position periodically"""
@@ -205,8 +215,7 @@ def update_screen() -> None:
 
             #running away/chasing after logic
             threat, prey = find_threat_and_prey(rect, rects)
-            if threat:
-                rect.vector = escape_threat_vector(rect, threat, 5)
+            rect.vector = run_and_chase_vect(rect, threat, prey, 5)
 
             #life span feature
             rect.curr_life -= dt

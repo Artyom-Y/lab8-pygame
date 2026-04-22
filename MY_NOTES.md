@@ -16,3 +16,5 @@ Each loop, the vector of every rect but one (the biggest) gets updated. So the e
 2. Then find prey for each square (to implement: find_prey function. Or repurpose find_threat to be find_threat_and_prey)
 3. Update the vector
 I have two optimization concerns. Firstly, we don't want to iterate through rectangles twice in search of threat and prey. This is more cost-heavy of the two. The other concern is us having to adjust the vector two times: to escape and to chase. This is less computation heavy. But also there's a logical concern: do we prioritze chasing or escaping? Can we do it at the same time? And will it involve three point linear interpolation?
+
+Current algorithm: find a desired vector, compute the coefficient, "lerp" rect's vector based on the coefficient. But now we need to take more rectangles into account
