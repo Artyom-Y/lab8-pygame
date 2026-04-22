@@ -1,8 +1,8 @@
+from __future__ import annotations
 import pygame
 from dataclasses import dataclass
 import random
 import math
-from typing import Optional
 
 @dataclass
 class GameConfig:
@@ -12,7 +12,7 @@ class GameConfig:
     min_square_size: int = 5
     max_square_size: int = 30
     square_num: int = 10
-    max_speed: int = 5
+    max_speed: int = 7
 
 
 CONFIG: GameConfig = GameConfig()
@@ -37,18 +37,18 @@ class MovingRect(pygame.rect.Rect):
         self.color = START_COLOR
 
 
-    def set_speed(self):
-        return (CONFIG.max_speed / self.width)
+    def set_speed(self) -> int:
+        return (random.randint(CONFIG.max_speed // 2, CONFIG.max_speed) / (self.width))
     
-    def set_vector(self):
+    def set_vector(self) -> pygame.Vector2:
         angle = random.uniform(0, math.pi*2)
-        return pygame.Vector2(math.cos(angle), math.sin(angle)).normalize()
+        return pygame.Vector2(math.cos(angle), math.sin(angle)).normalize() # safe to normalize - it's never zero
     
     def move_dir(self, dt) -> None:
-        self.x = self.x + self.vector.x * self.speed * dt
+        self.x = self.x + self.vector.x * self.speed * dt # dt increases the speed a lot
         self.y = self.y + self.vector.y * self.speed * dt
 
-    def randomize_dir(self, chance: int) -> None:
+    def randomize_dir(self, chance: float) -> None:
         """Randomize MovingRect's direction vectors.
         :param chance: chance that the vector direction will
         change (0.0 <= chance <= 1.0)
@@ -56,9 +56,9 @@ class MovingRect(pygame.rect.Rect):
         assert chance >= 0.0 and chance <= 1.0, "chance must be within [0.0, 1.0]"
 
         if random.random() <= chance:
-            self.vector.rotate_rad(random.uniform(-1, 1))
+            self.vector = self.vector.rotate_rad(random.uniform(-1, 1))
 
-    def randomize_speed(self, chance: int) -> None:
+    def randomize_speed(self, chance: float) -> None:
         """Randomize MovingRect's speed scalar.
         :param chance: chance that the speed will
         change (0.0 <= chance <= 1.0)
@@ -69,7 +69,7 @@ class MovingRect(pygame.rect.Rect):
             self.speed = self.set_speed()
 
     @staticmethod
-    def random_square():
+    def random_square() -> MovingRect:
         x = random.randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
         y = random.randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
 
@@ -181,7 +181,9 @@ def run_and_chase_vect(rect: MovingRect, threat: MovingRect | None, prey: Moving
     if prey:
         chase_vect.update(prey.x - rect.x, prey.y - rect.y)
 
-    new_vect = (run_vect + chase_vect).normalize()
+    new_vect = (run_vect + chase_vect)
+    if new_vect.length():
+        new_vect = new_vect.normalize()
 
     return (1-danger) * rect.vector + danger * new_vect
 

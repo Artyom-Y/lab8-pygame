@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Squares Game - Code Explorer</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: rgba(30, 144, 255, 0.1);
+            border: 2px solid #1e90ff;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #1e90ff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header-meta {
+            color: #aaa;
+            font-size: 0.95em;
+        }
+        .header-description {
+            margin-top: 15px;
+            color: #ddd;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #404040;
+            padding-bottom: 10px;
+        }
+        .nav-button {
+            padding: 10px 20px;
+            background: #333;
+            border: 2px solid #404040;
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+        .nav-button:hover {
+            background: #404040;
+            color: #1e90ff;
+        }
+        .nav-button.active {
+            background: #1e90ff;
+            border-color: #1e90ff;
+            color: white;
+        }
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .overview-card {
+            background: #282828;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .overview-card:hover {
+            border-color: #1e90ff;
+            box-shadow: 0 0 15px rgba(30, 144, 255, 0.2);
+        }
+        .overview-card h3 {
+            color: #1e90ff;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .overview-card p {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .architecture-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .arch-button {
+            padding: 8px 16px;
+            background: #333;
+            border: 1px solid #404040;
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-size: 0.85em;
+        }
+        .arch-button:hover {
+            background: #404040;
+            color: #1e90ff;
+        }
+        .arch-button.active {
+            background: #1e90ff;
+            color: white;
+        }
+        .arch-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .arch-panel.active {
+            display: block;
+        }
+        .diagram-container {
+            background: #1a1a1a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow: auto;
+        }
+        .diagram-title {
+            color: #1e90ff;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .diagram-caption {
+            color: #888;
+            font-size: 0.9em;
+            font-style: italic;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #404040;
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .pattern-card {
+            background: #282828;
+            border-left: 4px solid #1e90ff;
+            border-radius: 4px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .pattern-card.issue {
+            border-left-color: #ff6b6b;
+        }
+        .pattern-card:hover {
+            box-shadow: 0 0 15px rgba(30, 144, 255, 0.15);
+        }
+        .pattern-title {
+            color: #1e90ff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .pattern-card.issue .pattern-title {
+            color: #ff6b6b;
+        }
+        .pattern-layers {
+            font-size: 0.85em;
+        }
+        .layer-basics, .layer-eng, .layer-arch {
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #383838;
+        }
+        .layer-basics:last-child, .layer-eng:last-child, .layer-arch:last-child {
+            border-bottom: none;
+        }
+        .layer-label {
+            color: #888;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .layer-content {
+            color: #ccc;
+        }
+        .type-banner {
+            background: linear-gradient(135deg, #1e90ff 0%, #0d47a1 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .type-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+        }
+        .type-verdict {
+            color: #e0e0ff;
+            margin-top: 5px;
+        }
+        .review-layout {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            min-height: 400px;
+        }
+        .review-item {
+            background: #282828;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+        }
+        .review-item:hover {
+            border-color: #1e90ff;
+            box-shadow: 0 0 8px rgba(30, 144, 255, 0.1);
+        }
+        .review-item.active {
+            border-color: #1e90ff;
+            background: #303040;
+        }
+        .review-item-title {
+            color: #1e90ff;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .review-item-severity {
+            display: inline-block;
+            font-size: 0.7em;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-top: 5px;
+            color: white;
+        }
+        .severity-high { background: #ff6b6b; }
+        .severity-medium { background: #ffa500; }
+        .severity-low { background: #4caf50; }
+        .review-item-note {
+            color: #aaa;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+        #review-detail-panel {
+            background: #282828;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .detail-title {
+            color: #1e90ff;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .detail-severity {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            color: white;
+        }
+        .detail-section {
+            margin-bottom: 15px;
+        }
+        .detail-section-heading {
+            color: #888;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .detail-content {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #61dafb;
+        }
+        .performance-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .perf-win, .perf-risk {
+            background: #282828;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .perf-win {
+            border-left: 4px solid #4caf50;
+        }
+        .perf-risk {
+            border-left: 4px solid #ff9800;
+        }
+        .perf-title {
+            color: #4caf50;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .perf-risk .perf-title {
+            color: #ff9800;
+        }
+        .badge-score {
+            background: linear-gradient(135deg, #1e90ff 0%, #0d47a1 100%);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+        }
+        .badge-score-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .badge-score-text {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .nextsteps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .ns-item {
+            background: #282828;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .ns-item:hover {
+            border-color: #1e90ff;
+            box-shadow: 0 0 15px rgba(30, 144, 255, 0.2);
+        }
+        .ns-title {
+            color: #1e90ff;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .ns-description {
+            color: #ccc;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .ns-link {
+            display: inline-block;
+            color: #1e90ff;
+            text-decoration: none;
+            border: 1px solid #1e90ff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .ns-link:hover {
+            background: #1e90ff;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .review-layout {
+                grid-template-columns: 1fr;
+            }
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+            .performance-section {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Moving Squares Game</h1>
+            <div class="header-meta">Code Explorer | pygame Project | lab8-pygame</div>
+            <div class="header-description">
+                An interactive learning dashboard analyzing a dynamic pygame game featuring autonomous rectangles with intelligent threat detection, color-based aging, and collision physics. Explore architecture patterns, mathematical concepts, and game design principles through interactive diagrams and code analysis.
+            </div>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="nav-button active" onclick="switchTab('overview')">Overview</button>
+            <button class="nav-button" onclick="switchTab('architecture')">Architecture</button>
+            <button class="nav-button" onclick="switchTab('patterns')">Patterns</button>
+            <button class="nav-button" onclick="switchTab('typehints')">Type Hints</button>
+            <button class="nav-button" onclick="switchTab('codereview')">Code Review</button>
+            <button class="nav-button" onclick="switchTab('performance')">Performance</button>
+            <button class="nav-button" onclick="switchTab('nextsteps')">Next Steps</button>
+        </div>
+
+        <!-- OVERVIEW TAB -->
+        <div class="tab-panel active" id="overview">
+            <h2 style="color: #1e90ff; margin-bottom: 20px;">Project Overview</h2>
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <h3>🎯 Core Concept</h3>
+                    <p>A real-time simulation where colored rectangles move autonomously on screen. Each square has a lifecycle: spawn, move, age (color shift), detect threats, flee or chase, then respawn with audio feedback.</p>
+                </div>
+                <div class="overview-card">
+                    <h3>🎮 Game Mechanics</h3>
+                    <p><strong>Movement:</strong> Each rect moves via normalized 2D vector with speed proportional to size. Bounces off walls. <strong>Behavior:</strong> Larger rects chase smaller ones; smaller rects flee from larger. <strong>Lifecycle:</strong> Age from blue to red, then respawn.</p>
+                </div>
+                <div class="overview-card">
+                    <h3>⚙️ Technical Stack</h3>
+                    <p><strong>Core:</strong> pygame for rendering and event loop. <strong>Data:</strong> Config dataclass for constants. <strong>Audio:</strong> pygame mixer for sound effects. <strong>Math:</strong> Vector2 normalization, linear interpolation (lerp) for colors, distance calculations.</p>
+                </div>
+                <div class="overview-card">
+                    <h3>📊 Key Learning Areas</h3>
+                    <p>OOP (MovingRect extends Rect), game loops, vector mathematics, color interpolation, spatial algorithms, collision detection, state management, and pygame fundamentals (Surface, Clock, event handling, drawing).</p>
+                </div>
+                <div class="overview-card">
+                    <h3>🔧 Configuration</h3>
+                    <p><strong>Screen:</strong> 800×800 @ 60 FPS. <strong>Squares:</strong> 5–30px size, 10 concurrent. <strong>Speed:</strong> Scaled by inverse width (smaller = faster). <strong>Lifespan:</strong> 7–25 seconds with color aging.</p>
+                </div>
+                <div class="overview-card">
+                    <h3>💡 Design Patterns</h3>
+                    <p><strong>Game Loop:</strong> Continuous init → events → update → draw → repeat. <strong>State Pattern:</strong> Each rect encapsulates position, velocity, lifespan. <strong>Strategy:</strong> Threat detection decoupled from movement logic.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ARCHITECTURE TAB -->
+        <div class="tab-panel" id="architecture">
+            <h2 style="color: #1e90ff; margin-bottom: 20px;">Architecture & Diagrams</h2>
+            
+            <div class="architecture-nav">
+                <button class="arch-button active" onclick="switchArch('classdiagram')">Class Hierarchy</button>
+                <button class="arch-button" onclick="switchArch('gameloop')">Game Loop Flow</button>
+                <button class="arch-button" onclick="switchArch('callgraph')">Call Graph</button>
+                <button class="arch-button" onclick="switchArch('sequencediagram')">Sequence Diagram</button>
+                <button class="arch-button" onclick="switchArch('dataflow')">Data Flow</button>
+                <button class="arch-button" onclick="switchArch('threat')">Threat Detection</button>
+            </div>
+
+            <div class="arch-panel active" id="classdiagram">
+                <div class="diagram-container">
+                    <div class="diagram-title">Class Hierarchy</div>
+                    <div id="diag-class"></div>
+                    <div class="diagram-caption">MovingRect extends pygame.rect.Rect, adding movement properties (vector, speed, lifespan) and behaviors (lerp_color, threat detection).</div>
+                </div>
+            </div>
+
+            <div class="arch-panel" id="gameloop">
+                <div class="diagram-container">
+                    <div class="diagram-title">Game Loop Flow</div>
+                    <div id="diag-gameloop"></div>
+                    <div class="diagram-caption">The main update cycle: handle events, clear screen, iterate rects, compute movement/threats/aging, return to loop until QUIT.</div>
+                </div>
+            </div>
+
+            <div class="arch-panel" id="callgraph">
+                <div class="diagram-container">
+                    <div class="diagram-title">Call Graph</div>
+                    <div id="diag-callgraph"></div>
+                    <div class="diagram-caption">Entry point main() initializes window, then update_screen() orchestrates the game loop. Core functions: wall_bounce, move_dir, find_threat, escape_threat_vector.</div>
+                </div>
+            </div>
+
+            <div class="arch-panel" id="sequencediagram">
+                <div class="diagram-container">
+                    <div class="diagram-title">Sequence Diagram: Frame Update</div>
+                    <div id="diag-sequence"></div>
+                    <div class="diagram-caption">One frame cycle: event handling → physics (bounce, move) → threat detection → aging/color update → respawn logic → draw.</div>
+                </div>
+            </div>
+
+            <div class="arch-panel" id="dataflow">
+                <div class="diagram-container">
+                    <div class="diagram-title">Data Flow: Rectangle Lifecycle</div>
+                    <div id="diag-dataflow"></div>
+                    <div class="diagram-caption">A MovingRect is created, moves/ages each frame, and when lifespan depletes, is removed and replaced with a fresh instance.</div>
+                </div>
+            </div>
+
+            <div class="arch-panel" id="threat">
+                <div class="diagram-container">
+                    <div class="diagram-title">Threat Detection Flow</div>
+                    <div id="diag-threat"></div>
+                    <div class="diagram-caption">For each rect: find closest larger threat, compute escape vector blended with old vector based on threat size and distance, update direction.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PATTERNS TAB -->
+        <div class="tab-panel" id="patterns">
+            <h2 style="color: #1e90ff; margin-bottom: 20px;">Code Patterns & Analysis</h2>
+            
+            <h3 style="color: #aaa; margin: 30px 0 20px;">Good Patterns ✅</h3>
+            <div class="two-col">
+                <div class="pattern-card">
+                    <div class="pattern-title">Configuration Dataclass</div>
+                    <div class="pattern-layers">
+                        <div class="layer-basics">
+                            <div class="layer-label">Basics</div>
+                            <div class="layer-content">GameConfig encapsulates all tunable parameters (width, fps, size limits, square count) in one immutable structure. Clean, no magic numbers in code.</div>
+                        </div>
+                        <div class="layer-eng">
+                            <div class="layer-label">Engineering Insight</div>
+                            <div class="layer-content">Dataclasses auto-generate __init__, __repr__, __eq__. Makes testing easier: swap CONFIG for mock object. Python standard since 3.7.</div>
+                        </div>
+                        <div class="layer-arch">
+                            <div class="layer-label">Architecture Insight</div>
+                            <div class="layer-content">Single Responsibility: configuration logic separated from game logic. Follow DRY: one place to change screen size, FPS, or entity count.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-title">Object-Oriented Design (MovingRect)</div>
+                    <div class="pattern-layers">
+                        <div class="layer-basics">
+                            <div class="layer-label">Basics</div>
+                            <div class="layer-content">MovingRect extends pygame.rect.Rect, inheriting position/size logic while adding movement (vector, speed). Methods encapsulate behavior: move_dir, randomize_dir, lerp_color.</div>
+                        </div>
+                        <div class="layer-eng">
+                            <div class="layer-label">Engineering Insight</div>
+                            <div class="layer-content">Inheritance reuses Rect's collision-detection and positional methods. @classmethod random_square() is a factory pattern for convenient object creation with random initialization.</div>
+                        </div>
+                        <div class="layer-arch">
+                            <div class="layer-label">Architecture Insight</div>
+                            <div class="layer-content">Entity pattern common in game engines. Each rect is self-contained, responsible for own state (position, velocity, lifespan, color). Scales naturally to hundreds of entities.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-title">Pure Functions for Utility</div>
+                    <div class="pattern-layers">
+                        <div class="layer-basics">
+                            <div class="layer-label">Basics</div>
+                            <div class="layer-content">lerp_color, find_threat, escape_threat_vector are stateless functions. No global side effects. Input → computation → output. Easy to test in isolation.</div>
+                        </div>
+                        <div class="layer-eng">
+                            <div class="layer-label">Engineering Insight</div>
+                            <div class="layer-content">Predictable behavior: same inputs always produce same outputs. Facilitates unit testing and debugging. Composition: combine simple functions to solve complex problems.</div>
+                        </div>
+                        <div class="layer-arch">
+                            <div class="layer-label">Architecture Insight</div>
+                            <div class="layer-content">Functional programming principles reduce coupling. Threat logic, movement, color changes are orthogonal concerns, each solvable independently.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-title">Comprehensive Type Hints</div>
+                    <div class="pattern-layers">
+                        <div class="layer-basics">
+                            <div class="layer-label">Basics</div>
+                            <div class="layer-content">All function parameters and return types annotated. Example: escape_threat_vector(rect: MovingRect, threat: MovingRect, k: int) → pygame.Vector2. Tells IDE and reader intent.</div>
+                        </div>
+                        <div class="layer-eng">
+                            <div class="layer-label">Engineering Insight</div>
+                            <div class="layer-content">Type hints enable static analysis (mypy) to catch errors before runtime. Improves IDE autocomplete and documentation. Best practice in modern Python.</div>
+                        </div>
+                        <div class="layer-arch">
+                            <div class="layer-label">Architecture Insight</div>
+                            <div class="layer-label">Contract clarity: function signature is a contract. Caller knows exactly what to pass; function knows what it receives. Reduces surprises.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-title">Color Interpolation (Lerp)</div>
+                    <div class="pattern-layers">
+                        <div class="layer-basics">
+                            <div class="layer-label">Basics</div>
+                            <div class="layer-content">lerp_color() blends two colors via linear interpolation: new_color = (1-t)*c1 + t*c2. Parameter t (0 to 1) controls blend: 0=c1, 1=c2, 0.5=midpoint.</div>
+                        </div>
+                        <div class="layer-eng">
+                            <div class="layer-label">Engineering Insight</div>
+                            <div class="layer-label">Lerp is a fundamental utility in graphics/animation. Zips two sequences (RGB components) and interpolates channel-by-channel. Elegant use of zip + list comprehension.</div>
+                        </div>
+                        <div class="layer-arch">
+                            <div class="layer-label">Architecture Insight</div>
+                            <div class="layer-label">Visual feedback (blue→red aging) makes behavior observable to player. Reinforces temporal progression without text. Humanizes the simulation.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="color: #ff6b6b; margin: 30px 0 20px;">Potential Issues ⚠️</h3>
+            <div class="two-col">
+                <div class="pattern-card issue">
+                    <div class="pattern-title">Global State Management</div>
+                    <div class="pattern-layers">
+                        <div class="layer-basics">
+                            <div class="layer-label">Basics</div>
+                            <div class="layer-content">SCREEN, CLOCK, IS_OPEN, FONT, REBIRTH_SOUND, START_COLOR, END_COLOR declared globally, modified in init_window(). Functions depend on implicit global context.</div>
+                        </div>
+                        <div class="layer-eng">
+                            <div class="layer-label">Engineering Insight</div>
+                            <div class="layer-content">Tight coupling: hard to mock in tests. Concurrent calls problematic. Global mutable state = hidden dependencies and action-at-a-distance errors. Difficult to parallelize or reuse logic.</div>
+                        </div>
+                        <div class="layer-arch">
+                            <div class="layer-label">Architecture Insight</div>
+                            <div class="layer-label">Refactor: wrap globals in a Game class or pass context as parameter. Pattern: dependency injection. Benefits: testability, composability, clarity.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-card issue">
+                    <div class="pattern-title">Inconsistent Distance Calculations</div>
+                    <div class="pattern-layers">
+                        <div class="layer-basics">
+                            <div class="layer-label">Basics</div>
+                            <div class="layer-content">find_threat() uses squared distance (dist²) to avoid sqrt(). But escape_threat_vector() computes actual distance (dist). In escape_threat_vector, dist² is computed again unnecessarily.</div>
+                        </div>
+                        <div class="layer-eng">
+                            <div class="layer-label">Engineering Insight</div>
+                            <div class="layer-label">Redundant sqrt() calls. O(n²) per frame because threat detection iterates all rects for each rect. Squared distance is faster for comparisons, but then sqrt needed for magnitude calculations.</div>
+                        </div>
+                        <div class="layer-arch">
+                            <div class="layer-label">Architecture Insight</div>
+                            <div class="layer-label">Opportunity: cache threat results or use spatial partitioning (grid/quadtree). Or precompute squared distances once per frame and reuse.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TYPE HINTS TAB -->
+        <div class="tab-panel" id="typehints">
+            <h2 style="color: #1e90ff; margin-bottom: 20px;">Type Hints Analysis</h2>
+            
+            <div class="type-banner">
+                <div class="type-score">5 / 5</div>
+                <div class="type-verdict">Excellent Coverage: All parameters and return types are explicitly annotated. Type hints are comprehensive, consistent, and use modern Python syntax (Optional, | union).</div>
+            </div>
+
+            <div class="two-col">
+                <div>
+                    <h3 style="color: #4caf50; margin-bottom: 15px;">🎯 Strengths</h3>
+                    <div class="pattern-card" style="border-left-color: #4caf50;">
+                        <div class="pattern-title" style="color: #4caf50;">Parameter Annotations Complete</div>
+                        <p style="color: #ccc; font-size: 0.9em; line-height: 1.6;">All function arguments typed: x, y, width, height, dt, chance, first, second, t, running_rect, threat, rects, n, rect. Covers primitives (int), pygame types (pygame.Color, pygame.Vector2), and custom types (MovingRect).</p>
+                    </div>
+
+                    <div class="pattern-card" style="border-left-color: #4caf50; margin-top: 15px;">
+                        <div class="pattern-title" style="color: #4caf50;">Return Types Explicit</div>
+                        <p style="color: #ccc; font-size: 0.9em; line-height: 1.6;">→ None, → MovingRect, → pygame.Vector2, → list[MovingRect], → pygame.Color, → MovingRect | None. Modern syntax: list[T] instead of List[T], union via | operator (Python 3.10+).</p>
+                    </div>
+
+                    <div class="pattern-card" style="border-left-color: #4caf50; margin-top: 15px;">
+                        <div class="pattern-title" style="color: #4caf50;">Concrete Generics</div>
+                        <p style="color: #ccc; font-size: 0.9em; line-height: 1.6;">list[MovingRect] is specific, not generic List. Tells reader immediately: this function returns a list of rectangles, not mixed types. Aids IDE tools and static checkers.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="color: #ff9800; margin-bottom: 15px;">🔍 Gaps & Opportunities</h3>
+                    <div class="pattern-card issue" style="margin-top: 0;">
+                        <div class="pattern-title" style="color: #ff9800;">Global Variables Untyped</div>
+                        <p style="color: #ccc; font-size: 0.9em; line-height: 1.6;">SCREEN, CLOCK, FONT, REBIRTH_SOUND declared as None at module level, no type hints. Should annotate: SCREEN: pygame.Surface | None. Improves code clarity and IDE support.</p>
+                    </div>
+
+                    <div class="pattern-card issue" style="margin-top: 15px;">
+                        <div class="pattern-title" style="color: #ff9800;">Dataclass Type Hints Optional</div>
+                        <p style="color: #ccc; font-size: 0.9em; line-height: 1.6;">GameConfig already has defaults, so @dataclass inference works. But explicit types in @dataclass fields (width: int = 800) is already present and good. Minor: consider frozen=True for immutability.</p>
+                    </div>
+
+                    <div class="pattern-card issue" style="margin-top: 15px;">
+                        <div class="pattern-title" style="color: #ff9800;">Callable Types in Callbacks</div>
+                        <p style="color: #ccc; font-size: 0.9em; line-height: 1.6;">Event handlers and callbacks not typed. Example: handle_events → None is correct, but no Callable[[Event], None] type hints for event patterns. Low priority for this project.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CODE REVIEW TAB -->
+        <div class="tab-panel" id="codereview">
+            <h2 style="color: #1e90ff; margin-bottom: 20px;">Code Review</h2>
+            
+            <div class="review-layout">
+                <div>
+                    <h3 style="color: #aaa; margin-bottom: 15px;">Review Items</h3>
+                    <div id="review-items-container"></div>
+                </div>
+                <div id="review-detail-panel">
+                    <div class="detail-title">Select an item to view details</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE TAB -->
+        <div class="tab-panel" id="performance">
+            <h2 style="color: #1e90ff; margin-bottom: 20px;">Performance Analysis</h2>
+            
+            <div class="performance-section">
+                <div>
+                    <h3 style="color: #4caf50; margin-bottom: 15px;">🚀 Wins</h3>
+                    <div class="perf-win">
+                        <div class="perf-title">Squared Distance Optimization</div>
+                        <p style="color: #ccc; font-size: 0.9em;">find_threat() compares sq_distance instead of computing sqrt(). Avoids expensive square-root operation. Floating-point optimization: valid when comparing magnitudes (ordering preserved).</p>
+                    </div>
+                    <div class="perf-win" style="margin-top: 15px;">
+                        <div class="perf-title">Efficient Vector Normalization</div>
+                        <p style="color: #ccc; font-size: 0.9em;">pygame.Vector2.normalize() is optimized C code. Used for direction initialization. Avoids manual normalization: manual_norm = v / len(v) would be slower and less readable.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="color: #ff9800; margin-bottom: 15px;">🐢 Risks</h3>
+                    <div class="perf-risk">
+                        <div class="perf-title">O(n²) Threat Detection</div>
+                        <p style="color: #ccc; font-size: 0.9em;">find_threat() iterates all rects for each rect. With 10 rects, 100 distance calculations per frame. At 60 FPS, manageable. But scales poorly: 100 rects = 600,000 distances/sec. Mitigation: spatial indexing (quadtree) or fixed threat pool.</p>
+                    </div>
+                    <div class="perf-risk" style="margin-top: 15px;">
+                        <div class="perf-title">Redundant Distance Computation</div>
+                        <p style="color: #ccc; font-size: 0.9em;">Squared distance computed twice: in find_threat() and again in escape_threat_vector() (as dist²). Cache threat result or pass distance to avoid recalculation. Small fix, big payoff in larger games.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="badge-score">
+                <div class="badge-score-value">3 / 6</div>
+                <div class="badge-score-text">Performance Signals: Identified optimization opportunity (threat caching) and scalability risk (O(n²) loop). Current 10-entity cap masked complexity. Good use of vector ops and squared distances where it counts.</div>
+            </div>
+        </div>
+
+        <!-- NEXT STEPS TAB -->
+        <div class="tab-panel" id="nextsteps">
+            <h2 style="color: #1e90ff; margin-bottom: 20px;">Learning Resources & Exercises</h2>
+            
+            <div class="nextsteps-grid">
+                <div class="ns-item">
+                    <div class="ns-title">📚 Pygame Fundamentals</div>
+                    <div class="ns-description">Deep dive into pygame.Surface, event loops, drawing primitives, and the main game loop architecture.</div>
+                    <a href="https://www.pygame.org/docs/" target="_blank" class="ns-link">Pygame Docs</a>
+                </div>
+
+                <div class="ns-item">
+                    <div class="ns-title">📐 Vector Mathematics</div>
+                    <div class="ns-description">Explore 2D vector operations: normalization, dot/cross products, lerp, and distance calculations used in game physics and threat detection.</div>
+                    <a href="https://en.wikipedia.org/wiki/Vector_(mathematics_and_physics)" target="_blank" class="ns-link">Vector Math</a>
+                </div>
+
+                <div class="ns-item">
+                    <div class="ns-title">🎨 Color Interpolation</div>
+                    <div class="ns-description">Understand linear interpolation (lerp) for smooth transitions. Applied here to color aging: blue → red. Core technique in graphics and animation.</div>
+                    <a href="https://en.wikipedia.org/wiki/Linear_interpolation" target="_blank" class="ns-link">Lerp Explained</a>
+                </div>
+
+                <div class="ns-item">
+                    <div class="ns-title">🎮 Game Loop Pattern</div>
+                    <div class="ns-description">The canonical game architecture: initialize → handle input → update state → draw → repeat. Foundation of all real-time games.</div>
+                    <a href="https://en.wikipedia.org/wiki/Game_programming#Game_loop" target="_blank" class="ns-link">Game Loop</a>
+                </div>
+
+                <div class="ns-item">
+                    <div class="ns-title">🔍 Spatial Algorithms</div>
+                    <div class="ns-description">Distance calculations, threat detection, collision detection. Learn quadtrees, spatial hashing for O(log n) lookups vs. O(n²) brute force.</div>
+                    <a href="https://en.wikipedia.org/wiki/Quadtree" target="_blank" class="ns-link">Spatial Indexing</a>
+                </div>
+
+                <div class="ns-item">
+                    <div class="ns-title">🧪 Type Hints & Testing</div>
+                    <div class="ns-description">Improve code quality with static type checking (mypy), unit tests, and functional programming principles demonstrated in pure utility functions.</div>
+                    <a href="https://docs.python.org/3/library/typing.html" target="_blank" class="ns-link">Python Typing</a>
+                </div>
+            </div>
+
+            <h3 style="color: #1e90ff; margin-top: 40px; margin-bottom: 20px;">💪 Suggested Improvements</h3>
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <h3 style="color: #ff9800;">Refactor: Dependency Injection</h3>
+                    <p>Replace globals with a Game class. Pass GameState to functions. Enables testing, concurrency, and easier debugging. Minimal refactor: wrap SCREEN, CLOCK, etc. in a State object.</p>
+                </div>
+                <div class="overview-card">
+                    <h3 style="color: #ff9800;">Optimize: Cache Threats</h3>
+                    <p>Store threat + distance in each rect. Recompute once per frame instead of O(n²) lookups. Or use spatial partitioning (grid) to reduce candidate set.</p>
+                </div>
+                <div class="overview-card">
+                    <h3 style="color: #4caf50;">Add: Particle Effects</h3>
+                    <p>Respawn visual: draw fading particles at old position. Or sprite animations. Reinforces visual feedback. Minimal code: yield particles from respawn, draw then remove.</p>
+                </div>
+                <div class="overview-card">
+                    <h3 style="color: #4caf50;">Extend: Predator/Prey Simulation</h3>
+                    <p>Classify rects as predators or prey. Complex behaviors: hunting, herding, starvation. Graph population over time. Emergent complexity from simple rules (Conway's Game of Life vibe).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mermaid diagram sources
+        const diagrams = {
+            class: String.raw`
+                classDiagram
+                    class PygameRect {
+                        x: int
+                        y: int
+                        width: int
+                        height: int
+                        centerx: int
+                        centery: int
+                    }
+                    class MovingRect {
+                        speed: float
+                        vector: Vector2
+                        area: int
+                        max_life: int
+                        curr_life: int
+                        color: Color
+                        +set_speed()
+                        +set_vector()
+                        +move_dir(dt)
+                        +randomize_dir(chance)
+                        +randomize_speed(chance)
+                        +random_square()
+                        +lerp_color(c1, c2, t)
+                    }
+                    MovingRect --|> PygameRect
+            `,
+            gameloop: String.raw`
+                flowchart TD
+                    a1["main()"] --> a2["init_window()"]
+                    a2 --> a3["SCREEN/CLOCK initialized"]
+                    a3 --> a4["update_screen()"]
+                    a4 --> a5["create_moving_rects()"]
+                    a5 --> a6["Game Loop"]
+                    a6 --> a7["handle_events()"]
+                    a7 --> a8{"QUIT?"}
+                    a8 -->|No| a9["Clear Screen"]
+                    a9 --> a10["CLOCK.tick()"]
+                    a10 --> a11["For each rect:"]
+                    a11 --> a12["wall_bounce()"]
+                    a12 --> a13["move_dir()"]
+                    a13 --> a14["Compute color lerp"]
+                    a14 --> a15["find_threat()"]
+                    a15 --> a16["escape_threat_vector()"]
+                    a16 --> a17["Update lifespan"]
+                    a17 --> a18{"Lifespan zero?"}
+                    a18 -->|Yes| a19["Remove rect"]
+                    a19 --> a20["Spawn new rect"]
+                    a20 --> a21["Play sound"]
+                    a18 -->|No| a22["pygame.draw.rect()"]
+                    a21 --> a22
+                    a22 --> a23["Draw FPS/count"]
+                    a23 --> a24["pygame.display.flip()"]
+                    a24 --> a6
+                    a8 -->|Yes| a25["pygame.quit()"]
+            `,
+            callgraph: String.raw`
+                graph TD
+                    n1["main()"] --> n2["init_window()"]
+                    n1 --> n3["update_screen()"]
+                    n2 --> n4["pygame.init()"]
+                    n2 --> n5["pygame.display"]
+                    n2 --> n6["pygame.mixer"]
+                    n3 --> n7["create_moving_rects()"]
+                    n3 --> n8["handle_events()"]
+                    n3 --> n9["Game Loop"]
+                    n9 --> n10["MovingRect methods"]
+                    n10 --> n11["wall_bounce()"]
+                    n10 --> n12["move_dir()"]
+                    n10 --> n13["lerp_color()"]
+                    n9 --> n14["find_threat()"]
+                    n9 --> n15["escape_threat_vector()"]
+                    n11 --> n16["Vector reflect"]
+                    n12 --> n17["Vector arithmetic"]
+                    n14 --> n18["Distance calc"]
+                    n15 --> n19["Vector blend"]
+            `,
+            sequence: String.raw`
+                sequenceDiagram
+                    participant loop as Main Loop
+                    participant evt as Event Handler
+                    participant rect as MovingRect
+                    participant threat as Threat Detection
+                    participant draw as Renderer
+                    loop as ->> evt: poll events
+                    evt ->> evt: check QUIT
+                    loop as ->> rect: wall bounce
+                    rect ->> rect: reflect vector
+                    loop as ->> rect: move dir
+                    loop as ->> threat: find threat
+                    threat ->> threat: iter rects
+                    threat -->> loop: threat or None
+                    loop as ->> rect: escape vector
+                    loop as ->> rect: age color
+                    loop as ->> rect: check lifespan
+                    rect -->> loop: dead?
+                    loop as ->> rect: spawn new
+                    loop as ->> draw: draw rect
+                    draw ->> draw: pygame.draw
+                    loop as ->> draw: display flip
+            `,
+            dataflow: String.raw`
+                graph TD
+                    n1["MovingRect.random_square()"] --> n2["x,y,size random"]
+                    n2 --> n3["create MovingRect"]
+                    n3 --> n4["set speed/vector"]
+                    n4 --> n5["initialize lifespan"]
+                    n5 --> n6["Rect in list"]
+                    n6 --> n7["Each frame:"]
+                    n7 --> n8["move_dir()"]
+                    n8 --> n9["curr_life -= dt"]
+                    n9 --> n10["t = curr/max"]
+                    n10 --> n11["lerp_color()"]
+                    n11 --> n12["draw with color"]
+                    n9 --> n13{"curr_life ≤ 0?"}
+                    n13 -->|Yes| n14["remove from list"]
+                    n14 --> n15["create new rect"]
+                    n15 --> n6
+                    n13 -->|No| n7
+            `,
+            threat: String.raw`
+                graph TD
+                    n1["For each rect R:"] --> n2["find_threat(R)"]
+                    n2 --> n3["Iter all rects"]
+                    n3 --> n4["Calc sq_distance"]
+                    n4 --> n5["Compare area"]
+                    n5 --> n6{"Larger?"}
+                    n6 -->|No| n7["Skip"]
+                    n6 -->|Yes| n8{"Closest?"}
+                    n8 -->|Yes| n9["threat = rect"]
+                    n8 -->|No| n7
+                    n3 --> n10["Return threat"]
+                    n10 --> n11["escape_threat_vector()"]
+                    n11 --> n12["Calc direction away"]
+                    n12 --> n13["Calc distance"]
+                    n13 --> n14["Blend vectors"]
+                    n14 --> n15["New direction"]
+                    n15 --> n16["Update rect.vector"]
+            `
+        };
+
+        // Code review items
+        const reviewItems = [
+            {
+                id: 1,
+                title: "classmethod vs staticmethod",
+                severity: "high",
+                snippet: "@classmethod\ndef random_square(self):\n    # Should be: @staticmethod\n    # No self used",
+                shortNote: "random_square() doesn't use self; should be @staticmethod",
+                fullExplanation: "A @classmethod receives the class as first arg (cls), but random_square() ignores it. Since no class access occurs, @staticmethod is correct. The current code works but misleads readers about intent.",
+                improvementHint: "Change @classmethod to @staticmethod, rename self to an unused variable or omit. Or keep @classmethod if planning to subclass MovingRect and customize spawn logic per subclass."
+            },
+            {
+                id: 2,
+                title: "Global State Coupling",
+                severity: "high",
+                snippet: "global SCREEN, CLOCK, IS_OPEN, FONT, REBIRTH_SOUND\nSCREEN = pygame.display.set_mode(...)\nCLOCK = pygame.time.Clock()",
+                shortNote: "Functions depend on mutable global variables; prevents testing and reuse",
+                fullExplanation: "Functions like handle_events() and update_screen() implicitly reference globals. This tight coupling makes unit testing impossible without mocking the module. Difficult to run two game instances concurrently. Breaks encapsulation.",
+                improvementHint: "Refactor: create a Game class encapsulating state. Pass GameState to functions as parameter. Enables dependency injection, easier testing, and cleaner architecture."
+            },
+            {
+                id: 3,
+                title: "Missing Error Handling",
+                severity: "medium",
+                snippet: "REBIRTH_SOUND = pygame.mixer.Sound(\"media/pop.mp3\")\nREBIRTH_SOUND.set_volume(0.5)",
+                shortNote: "No FileNotFoundError handling if audio file missing",
+                fullExplanation: "If media/pop.mp3 doesn't exist, init_window() crashes. Robust code handles missing assets gracefully: play silence or skip sound effect.",
+                improvementHint: "Wrap in try-except; log warning if file not found. Or preload and validate all assets before game start."
+            },
+            {
+                id: 4,
+                title: "Type Hints on Globals",
+                severity: "medium",
+                snippet: "SCREEN: pygame.Surface = None\nCLOCK: pygame.time.Clock = None\nIS_OPEN = False  # Missing hint",
+                shortNote: "Module-level variables lack type hints; IS_OPEN should be annotated",
+                fullExplanation: "SCREEN and CLOCK are annotated but set to None. IS_OPEN, FONT, REBIRTH_SOUND, START_COLOR, END_COLOR are not typed. Hurts IDE support and code readability.",
+                improvementHint: "Add annotations: SCREEN: pygame.Surface | None = None, IS_OPEN: bool = False, etc. Use Optional[T] or T | None syntax consistently."
+            },
+            {
+                id: 5,
+                title: "Redundant Distance Calculation",
+                severity: "low",
+                snippet: "# In find_threat(): sq_dist = (dx² + dy²)\n# In escape_threat_vector():\ndist = ((threat.x - rect.x)**2 + (threat.y - rect.y)**2)**0.5",
+                shortNote: "Distance computed twice; first squared, then actual distance recalculated",
+                fullExplanation: "find_threat() uses squared distance for efficiency, but escape_threat_vector() computes actual distance again. The squared distance is already available; pass it through or cache.",
+                improvementHint: "Return (threat, sq_distance) tuple from find_threat(). Pass to escape_threat_vector() and use directly. Saves one sqrt() per frame per rect."
+            }
+        ];
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            // Show selected
+            document.getElementById(tabName).classList.add('active');
+            // Update buttons
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            // Render diagrams if architecture tab
+            if (tabName === 'architecture') {
+                renderDiagrams();
+            }
+        }
+
+        function switchArch(archName) {
+            // Hide all arch panels
+            document.querySelectorAll('.arch-panel').forEach(p => p.classList.remove('active'));
+            // Show selected
+            document.getElementById(archName).classList.add('active');
+            // Update buttons
+            document.querySelectorAll('.arch-button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            // Trigger render
+            setTimeout(() => renderDiagrams(), 100);
+        }
+
+        // Render all diagrams
+        async function renderDiagrams() {
+            const diagramConfigs = [
+                { key: 'class', container: 'diag-class' },
+                { key: 'gameloop', container: 'diag-gameloop' },
+                { key: 'callgraph', container: 'diag-callgraph' },
+                { key: 'sequence', container: 'diag-sequence' },
+                { key: 'dataflow', container: 'diag-dataflow' },
+                { key: 'threat', container: 'diag-threat' }
+            ];
+
+            for (const config of diagramConfigs) {
+                try {
+                    const container = document.getElementById(config.container);
+                    if (!container) continue;
+                    const { svg } = await mermaid.render('diag-' + config.key, diagrams[config.key]);
+                    container.innerHTML = svg;
+                } catch (e) {
+                    console.error('Diagram error:', config.key, e);
+                    const container = document.getElementById(config.container);
+                    if (container) {
+                        container.innerHTML = `<div style="color: #ff6b6b; padding: 20px; background: #1a1a1a; border-radius: 4px;"><strong>Diagram Error:</strong> ${e.message}<br/><pre style="margin-top: 10px; font-size: 0.8em; overflow: auto;">${diagrams[config.key]}</pre></div>`;
+                    }
+                }
+            }
+        }
+
+        // Initialize code review items
+        function initializeReview() {
+            const container = document.getElementById('review-items-container');
+            container.innerHTML = reviewItems.map((item, idx) => `
+                <div class="review-item ${idx === 0 ? 'active' : ''}" onclick="selectReview(${item.id})">
+                    <div class="review-item-title">${item.title}</div>
+                    <div class="review-item-severity severity-${item.severity}">${item.severity.toUpperCase()}</div>
+                    <div class="review-item-note">${item.shortNote}</div>
+                </div>
+            `).join('');
+            // Show first item by default
+            selectReview(1);
+        }
+
+        function selectReview(itemId) {
+            const item = reviewItems.find(r => r.id === itemId);
+            if (!item) return;
+            // Update active state
+            document.querySelectorAll('.review-item').forEach(el => el.classList.remove('active'));
+            event.target.closest('.review-item').classList.add('active');
+            // Populate detail panel
+            const panel = document.getElementById('review-detail-panel');
+            panel.innerHTML = `
+                <div class="detail-title">${item.title}</div>
+                <div class="detail-severity severity-${item.severity}">${item.severity.toUpperCase()}</div>
+                <div class="detail-section">
+                    <div class="detail-section-heading">Code Snippet</div>
+                    <div class="code-block">${item.snippet}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-heading">Explanation</div>
+                    <div class="detail-content">${item.fullExplanation}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-heading">Improvement Hint</div>
+                    <div class="detail-content">${item.improvementHint}</div>
+                </div>
+            `;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeReview();
+            mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Squares Learning Lab</title>
+    <meta name="description" content="A learning website that explains how the Moving Squares pygame project works.">
+    <style>
+        :root {
+            --bg: #07111b;
+            --bg-soft: #0d1b2a;
+            --panel: rgba(12, 24, 38, 0.86);
+            --panel-strong: #10263b;
+            --line: rgba(148, 200, 255, 0.16);
+            --text: #eaf3ff;
+            --muted: #9bb4c8;
+            --accent: #5dd6c0;
+            --accent-2: #ffb86b;
+            --accent-3: #7aa7ff;
+            --danger: #ff7f7f;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --max: 1180px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Trebuchet MS", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(93, 214, 192, 0.16), transparent 28%),
+                radial-gradient(circle at top right, rgba(122, 167, 255, 0.16), transparent 24%),
+                linear-gradient(180deg, #04101a 0%, var(--bg) 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 36px 36px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 92%);
+            opacity: 0.45;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+        }
+
+        .wrap {
+            width: min(var(--max), calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .hero {
+            padding: 32px 0 24px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 10px 30px rgba(93, 214, 192, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-mark::before,
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.58);
+            border-radius: 8px;
+        }
+
+        .brand-mark::after {
+            inset: 16px;
+            border-radius: 4px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 1rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .brand p {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: var(--muted);
+            border: 1px solid transparent;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, background 160ms ease;
+        }
+
+        .nav a:hover,
+        .nav a:focus-visible {
+            color: var(--text);
+            border-color: var(--line);
+            background: rgba(93, 214, 192, 0.08);
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 0.9fr;
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .hero-card,
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius-xl);
+            backdrop-filter: blur(16px);
+        }
+
+        .hero-card {
+            padding: 34px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            right: -80px;
+            top: -70px;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(93, 214, 192, 0.22), transparent 66%);
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(93, 214, 192, 0.11);
+            border: 1px solid rgba(93, 214, 192, 0.24);
+            color: var(--accent);
+            font-size: 0.86rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .hero h2 {
+            font-size: clamp(2.5rem, 5vw, 4.8rem);
+            line-height: 0.98;
+            letter-spacing: -0.05em;
+            margin: 16px 0 18px;
+            max-width: 10ch;
+        }
+
+        .hero p.lead {
+            margin: 0;
+            color: #d9e7f6;
+            font-size: 1.05rem;
+            max-width: 62ch;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-radius: 999px;
+            padding: 12px 18px;
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+
+        .button.primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-3));
+            color: #03111a;
+        }
+
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--line);
+            color: var(--text);
+        }
+
+        .button:hover,
+        .button:focus-visible {
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 26px;
+        }
+
+        .stat {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .stat .value {
+            display: block;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--accent-2);
+            margin-bottom: 4px;
+        }
+
+        .stat .label {
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .sidebar {
+            padding: 22px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .sidebar h3,
+        .section h3 {
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+        }
+
+        .sidebar p,
+        .section p,
+        .section li {
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .mini-flow {
+            display: grid;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .flow-step {
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .flow-step strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .section {
+            padding: 20px 0;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-heading .kicker {
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-size: 0.78rem;
+            margin-bottom: 8px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: clamp(1.6rem, 2.8vw, 2.5rem);
+            letter-spacing: -0.03em;
+        }
+
+        .section-heading .summary {
+            max-width: 56ch;
+            text-align: right;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .card,
+        .note,
+        .code-block,
+        .timeline,
+        .tip-list,
+        .resource-list {
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(148, 200, 255, 0.14);
+            border-radius: var(--radius-lg);
+        }
+
+        .card {
+            padding: 18px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.02rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+        }
+
+        .badge.teal { background: rgba(93, 214, 192, 0.12); color: var(--accent); }
+        .badge.amber { background: rgba(255, 184, 107, 0.12); color: var(--accent-2); }
+        .badge.blue { background: rgba(122, 167, 255, 0.12); color: var(--accent-3); }
+        .badge.red { background: rgba(255, 127, 127, 0.12); color: var(--danger); }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 16px;
+        }
+
+        .timeline {
+            padding: 18px;
+        }
+
+        .timeline ol {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 12px;
+        }
+
+        .timeline li {
+            position: relative;
+            padding: 16px 16px 16px 54px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+        }
+
+        .timeline li::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #03111a;
+            background: linear-gradient(135deg, var(--accent-2), #ffdba8);
+        }
+
+        .code-block {
+            padding: 18px;
+            font-family: Consolas, "Courier New", monospace;
+            overflow: auto;
+            white-space: pre-wrap;
+            color: #d8f4ff;
+        }
+
+        .code-block .comment {
+            color: #84a8c7;
+        }
+
+        .feature-list,
+        .resource-list,
+        .tip-list {
+            padding: 18px;
+            margin: 0;
+            list-style: none;
+            display: grid;
+            gap: 12px;
+        }
+
+        .feature-list li,
+        .resource-list li,
+        .tip-list li {
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+        }
+
+        .feature-list strong,
+        .resource-list strong,
+        .tip-list strong {
+            color: var(--text);
+        }
+
+        .footer {
+            padding: 18px 0 34px;
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .footer .panel {
+            padding: 18px 22px;
+            border-radius: var(--radius-lg);
+        }
+
+        .floating-orb {
+            position: fixed;
+            inset: auto auto 8vh -80px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(122, 167, 255, 0.15), transparent 70%);
+            filter: blur(8px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .floating-orb.two {
+            inset: 14vh -90px auto auto;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(255, 184, 107, 0.12), transparent 70%);
+        }
+
+        @media (max-width: 980px) {
+            .hero-grid,
+            .two-col,
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-heading {
+                align-items: start;
+                flex-direction: column;
+            }
+
+            .section-heading .summary {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .wrap {
+                width: min(var(--max), calc(100% - 22px));
+            }
+
+            .hero-card,
+            .sidebar,
+            .card,
+            .timeline,
+            .code-block,
+            .footer .panel {
+                border-radius: 18px;
+            }
+
+            .hero-card {
+                padding: 24px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav {
+                justify-content: flex-start;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h2 {
+                max-width: none;
+            }
+
+            .timeline li {
+                padding-left: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-orb"></div>
+    <div class="floating-orb two"></div>
+
+    <div class="page">
+        <header class="hero">
+            <div class="wrap">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-mark" aria-hidden="true"></div>
+                        <div>
+                            <h1>Moving Squares Learning Lab</h1>
+                            <p>Built from the pygame project in this repository</p>
+                        </div>
+                    </div>
+                    <nav class="nav" aria-label="Sections">
+                        <a href="#overview">Overview</a>
+                        <a href="#loop">Game Loop</a>
+                        <a href="#mechanics">Mechanics</a>
+                        <a href="#next">Next Steps</a>
+                    </nav>
+                </div>
+
+                <div class="hero-grid">
+                    <section class="hero-card">
+                        <div class="eyebrow">pygame · vectors · simulation</div>
+                        <h2>Learn the project by following the squares.</h2>
+                        <p class="lead">
+                            This page turns the code in <strong>main.py</strong> into a guided walkthrough.
+                            It explains how the simulation starts, how each square moves, why the colors change,
+                            and which parts you can tweak to experiment with game behavior.
+                        </p>
+
+                        <div class="hero-actions">
+                            <a class="button primary" href="#overview">Start learning</a>
+                            <a class="button secondary" href="#loop">See the update loop</a>
+                        </div>
+
+                        <div class="stats" aria-label="Project facts">
+                            <div class="stat">
+                                <span class="value">1</span>
+                                <span class="label">main game file that controls the simulation</span>
+                            </div>
+                            <div class="stat">
+                                <span class="value">10</span>
+                                <span class="label">default moving squares spawned at startup</span>
+                            </div>
+                            <div class="stat">
+                                <span class="value">60</span>
+                                <span class="label">target frames per second</span>
+                            </div>
+                            <div class="stat">
+                                <span class="value">2</span>
+                                <span class="label">core ideas: motion and interaction</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <aside class="panel sidebar">
+                        <div>
+                            <h3>What this project teaches</h3>
+                            <p>
+                                The code demonstrates a compact but complete pygame loop: initialization,
+                                event handling, movement, rendering, and cleanup.
+                            </p>
+                        </div>
+
+                        <div class="mini-flow">
+                            <div class="flow-step">
+                                <strong>Setup</strong>
+                                Load pygame, configure the window, create fonts, and prepare the rebirth sound.
+                            </div>
+                            <div class="flow-step">
+                                <strong>Simulation</strong>
+                                Update every square using velocity, simple boundary checks, and relation-based steering.
+                            </div>
+                            <div class="flow-step">
+                                <strong>Feedback</strong>
+                                Use color interpolation, UI counters, and respawn effects to make state visible.
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </header>
+
+        <main class="wrap">
+            <section id="overview" class="section">
+                <div class="section-heading">
+                    <div>
+                        <div class="kicker">Overview</div>
+                        <h2>From configuration to movement</h2>
+                    </div>
+                    <p class="summary">
+                        The project is intentionally small, which makes it a good study case for understanding how a
+                        game loop, object state, and rendering work together.
+                    </p>
+                </div>
+
+                <div class="card-grid">
+                    <article class="card">
+                        <div class="badge teal">Configuration</div>
+                        <h3>GameConfig stores the rules</h3>
+                        <p>
+                            The window size, frame rate, square sizes, square count, and maximum speed are collected in
+                            one dataclass. That keeps the simulation easy to tune without editing many places.
+                        </p>
+                    </article>
+
+                    <article class="card">
+                        <div class="badge amber">State</div>
+                        <h3>MovingRect stores the behavior</h3>
+                        <p>
+                            Each square tracks its speed, vector, area, lifetime, and current color. The object carries
+                            the data needed to move and draw itself every frame.
+                        </p>
+                    </article>
+
+                    <article class="card">
+                        <div class="badge blue">Loop</div>
+                        <h3>The main loop drives the app</h3>
+                        <p>
+                            The screen is cleared, the clock advances, objects update, the UI is drawn, and the frame is
+                            presented. That loop repeats until the window closes.
+                        </p>
+                    </article>
+                </div>
+            </section>
+
+            <section id="loop" class="section">
+                <div class="section-heading">
+                    <div>
+                        <div class="kicker">Game Loop</div>
+                        <h2>How one frame is processed</h2>
+                    </div>
+                    <p class="summary">
+                        A frame is not just movement. It is a short pipeline that updates physics, checks interactions,
+                        and renders the result.
+                    </p>
+                </div>
+
+                <div class="two-col">
+                    <div class="timeline">
+                        <ol>
+                            <li data-step="1">
+                                <strong>Read input</strong>
+                                Poll pygame events and look for the quit event so the program can exit cleanly.
+                            </li>
+                            <li data-step="2">
+                                <strong>Measure time</strong>
+                                Call <em>clock.tick(fps)</em> to get the frame time in milliseconds and keep the update rate stable.
+                            </li>
+                            <li data-step="3">
+                                <strong>Update objects</strong>
+                                Bounce from walls, move by vector, adjust color, and recalculate chasing behavior.
+                            </li>
+                            <li data-step="4">
+                                <strong>Render output</strong>
+                                Draw the squares and the small text overlay, then flip the display buffer.
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="code-block" aria-label="Pseudo code for the loop">
+<span class="comment"># simplified frame structure</span>
+while window_is_open:
+    handle_events()
+    dt = clock.tick(fps)
+    screen.fill(background)
+
+    for rect in rects:
+        rect = wall_bounce(rect, dt)
+        rect.move_dir(dt)
+        rect.color = lerp_color(end_color, start_color, life_ratio)
+        draw_rect(rect)
+
+        threat, prey = find_threat_and_prey(rect, rects)
+        rect.vector = run_and_chase_vect(rect, threat, prey, 5)
+
+        rect.curr_life -= dt
+
+    draw_ui()
+    display.flip()
+                    </div>
+                </div>
+            </section>
+
+            <section id="mechanics" class="section">
+                <div class="section-heading">
+                    <div>
+                        <div class="kicker">Mechanics</div>
+                        <h2>Why the squares feel alive</h2>
+                    </div>
+                    <p class="summary">
+                        The interesting behavior comes from a few compact functions that combine motion, distance, and
+                        lifetime into one simulation.
+                    </p>
+                </div>
+
+                <div class="card-grid">
+                    <article class="card">
+                        <div class="badge red">Motion</div>
+                        <h3>Vector-based movement</h3>
+                        <p>
+                            Each square has a direction vector and a speed scalar. Multiplying by delta time keeps motion
+                            tied to real elapsed time instead of frame count.
+                        </p>
+                    </article>
+
+                    <article class="card">
+                        <div class="badge teal">Interaction</div>
+                        <h3>Threat and prey search</h3>
+                        <p>
+                            The project scans the other squares and picks the nearest larger one as a threat and the
+                            nearest smaller one as prey. That gives every square a local decision to make.
+                        </p>
+                    </article>
+
+                    <article class="card">
+                        <div class="badge amber">Feedback</div>
+                        <h3>Color and lifespan</h3>
+                        <p>
+                            Lifetime fades the color from start to end, and expired squares respawn with a new size and
+                            position. The sound cue reinforces that cycle.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="two-col" style="margin-top: 16px;">
+                    <ul class="feature-list">
+                        <li><strong>GameConfig</strong> keeps the project settings in one place.</li>
+                        <li><strong>MovingRect</strong> stores the properties that define a square's behavior.</li>
+                        <li><strong>wall_bounce</strong> reverses direction when a square reaches the edge of the screen.</li>
+                        <li><strong>find_threat_and_prey</strong> supports the chase-and-run logic.</li>
+                    </ul>
+
+                    <ul class="tip-list">
+                        <li><strong>Try changing square_num.</strong> Watch how crowding affects the chase logic.</li>
+                        <li><strong>Raise max_speed.</strong> Faster motion makes the wall bounce and steering easier to see.</li>
+                        <li><strong>Adjust max_life.</strong> Shorter lifetimes make the respawn system more obvious.</li>
+                        <li><strong>Change the colors.</strong> A different palette can make the same logic feel very different.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="next" class="section">
+                <div class="section-heading">
+                    <div>
+                        <div class="kicker">Next Steps</div>
+                        <h2>Ideas for extending the lesson</h2>
+                    </div>
+                    <p class="summary">
+                        Use this project as a base for experiments. Small changes here are easy to understand and easy to
+                        test.
+                    </p>
+                </div>
+
+                <div class="card-grid">
+                    <article class="card">
+                        <div class="badge blue">Experiment</div>
+                        <h3>Add keyboard controls</h3>
+                        <p>
+                            Let the player pause the simulation, spawn more squares, or change the chase intensity at
+                            runtime.
+                        </p>
+                    </article>
+
+                    <article class="card">
+                        <div class="badge teal">Visualize</div>
+                        <h3>Draw connection lines</h3>
+                        <p>
+                            Show which square is being chased and which square is threatening it. That makes the search
+                            logic easier to understand.
+                        </p>
+                    </article>
+
+                    <article class="card">
+                        <div class="badge amber">Refactor</div>
+                        <h3>Split the logic into modules</h3>
+                        <p>
+                            Move configuration, entities, and rendering into separate files once the project grows beyond
+                            a single teaching example.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="two-col" style="margin-top: 16px;">
+                    <div class="note card">
+                        <h3>How to run the game</h3>
+                        <p>
+                            From the repository root, activate the virtual environment, install dependencies, and run
+                            <strong>main.py</strong>. The learning site lives in <strong>docs/index.html</strong> and can be
+                            opened directly in a browser.
+                        </p>
+                    </div>
+
+                    <div class="resource-list">
+                        <li><strong>main.py</strong> is the source of truth for the simulation.</li>
+                        <li><strong>README.md</strong> gives a quick setup and usage summary.</li>
+                        <li><strong>docs/index.html</strong> is this interactive learning page.</li>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="wrap">
+                <div class="panel">
+                    <strong>Learning focus:</strong> follow the data from setup to motion to rendering, then change one value at a time and observe the effect.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const links = Array.from(document.querySelectorAll('.nav a'));
+
+        links.forEach((link) => {
+            link.addEventListener('click', () => {
+                links.forEach((item) => item.removeAttribute('aria-current'));
+                link.setAttribute('aria-current', 'page');
+            });
+        });
+    </script>
+</body>
+</html>
