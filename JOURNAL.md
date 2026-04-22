@@ -164,3 +164,18 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 22-04-2026 22:44
 - **Prompt**: can you generate a learning website? put it into docs folder and name it "index.html"
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 22-04-2026 22:49
+- **User**: artem.iavchunovskii@epita.fr
+- **Prompt**: can you generate a learning website? put it into docs folder and name it "index.html"
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Added a standalone responsive learning website at docs/index.html for the moving squares pygame project.
+- **Context and Reasons for Changes**: Turned the existing main.py simulation into a guided explainer with project overview, loop breakdown, mechanics, and extension ideas, while keeping the docs entry page self-contained.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 22-04-2026 22:51
+- **Prompt**: Could you create a website based on code explorer agent? Follow the instruction in the file. Once again, name the file "index.html" and put it into docs folder
