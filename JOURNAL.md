@@ -242,3 +242,19 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 27-04-2026 11:42
 - **Prompt**: analyze this project and produce a light refactoring plan
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 27-04-2026 11:45
+- **User**: artem.iavchunovskii@epita.fr
+- **Prompt**: analyze this project and produce a light refactoring plan
+- **CoPilot Mode**: Plan
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Created `refactoring.plan.md` with a beginner-friendly, step-by-step refactoring plan for `main.py`.
+- **Context and Reasons for Changes**: The project is small enough for incremental cleanup, so the plan focuses on readability, named constants, helper extraction, and preserving behavior rather than redesigning the game.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 27-04-2026 11:53
+- **Prompt**: implement the refactoring plan in #file:refactoring.plan.md
