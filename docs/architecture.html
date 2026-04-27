@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Documentation: Moving Squares (Pygame)</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --ink: #1f2937;
+            --muted: #5b6472;
+            --accent: #2f5cff;
+            --border: #d8e0ef;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Segoe UI, Arial, sans-serif;
+            color: var(--ink);
+            background: linear-gradient(180deg, #eaf0ff 0%, var(--bg) 30%, #eef2f8 100%);
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #23395d 0%, #2f5cff 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(35, 57, 93, 0.18);
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+        }
+
+        header p {
+            margin: 0;
+            max-width: 72ch;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        section {
+            margin-top: 22px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        h2 {
+            margin: 0 0 12px;
+            color: var(--accent);
+        }
+
+        h3 {
+            margin: 18px 0 10px;
+        }
+
+        p, li {
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        ul, ol {
+            margin: 10px 0 0 20px;
+            padding: 0;
+        }
+
+        .diagram {
+            margin-top: 16px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #fbfcff;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--accent);
+        }
+
+        code {
+            background: #eef3ff;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .note {
+            color: var(--muted);
+        }
+
+        @media (max-width: 720px) {
+            .page { padding: 14px; }
+            header, section { border-radius: 14px; }
+            header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>Architecture Documentation</h1>
+            <p>Moving Squares (Pygame) with runtime flow, object structure, AI behavior, and frame-level data flow extracted from <code>main.py</code>.</p>
+        </header>
+
+        <section>
+            <h2>Overview</h2>
+            <p>This project renders multiple moving rectangles in a Pygame window. Each rectangle has a direction vector, a movement speed, a lifespan, and a color that fades from blue to red. Rectangles bounce from the window edges, are influenced by nearby larger and smaller rectangles, and respawn when their lifespan reaches zero.</p>
+        </section>
+
+        <section>
+            <h2>System Architecture</h2>
+            <p class="note">Top-level runtime pieces and how they depend on each other.</p>
+            <div class="diagram">
+                <div class="mermaid">
+graph TB
+    subgraph "Runtime Layer"
+        MAIN["main()"]
+        INIT["init_window()"]
+        LOOP["update_screen()"]
+    end
+
+    subgraph "Game Objects"
+        CFG["GameConfig"]
+        RECT["MovingRect"]
+    end
+
+    subgraph "Support Functions"
+        EVT["handle_events()"]
+        SPAWN["create_moving_rects()"]
+        BOUNCE["wall_bounce()"]
+        FIND["find_threat_and_prey()"]
+        STEER["run_and_chase_vect()"]
+    end
+
+    subgraph "Pygame Services"
+        PG["pygame display, events, draw, font, mixer"]
+    end
+
+    MAIN --> INIT
+    MAIN --> LOOP
+    INIT --> PG
+    LOOP --> EVT
+    LOOP --> SPAWN
+    LOOP --> BOUNCE
+    LOOP --> FIND
+    LOOP --> STEER
+    LOOP --> RECT
+    LOOP --> PG
+    CFG -.-> RECT
+    CFG -.-> INIT
+    CFG -.-> LOOP
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Main Game Loop</h2>
+            <p class="note">The frame-by-frame execution path from startup to shutdown.</p>
+            <div class="diagram">
+                <div class="mermaid">
+sequenceDiagram
+    participant App as "Application"
+    participant Events as "Event Queue"
+    participant Clock as "Pygame Clock"
+    participant Rects as "MovingRect list"
+    participant Draw as "Renderer"
+    participant Sound as "Rebirth Sound"
+
+    App->>App: init_window()
+    App->>App: create_moving_rects(CONFIG.square_num)
+    loop Each frame
+        App->>Events: handle_events()
+        App->>Clock: tick(CONFIG.fps)
+        App->>Rects: iterate all rectangles
+        App->>Rects: wall_bounce(rect, dt)
+        App->>Rects: move_dir(dt)
+        App->>Rects: randomize_dir(0.02)
+        App->>Rects: randomize_speed(0.01)
+        App->>Rects: find_threat_and_prey(rect, rects)
+        App->>Rects: run_and_chase_vect(rect, threat, prey, 5)
+        App->>Rects: decrease lifespan
+        alt rectangle expired
+            App->>Sound: play()
+            App->>Rects: respawn new MovingRect
+        else rectangle survives
+            App->>Rects: keep rectangle alive
+        end
+        App->>Draw: render rectangles and UI text
+        App->>Draw: pygame.display.flip()
+    end
+    App->>App: pygame.quit()
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Class Structure</h2>
+            <div class="diagram">
+                <div class="mermaid">
+classDiagram
+    class "pygame.rect.Rect" {
+        +x
+        +y
+        +width
+        +height
+        +centerx
+        +centery
+    }
+
+    class "MovingRect" {
+        +speed
+        +vector
+        +area
+        +max_life
+        +curr_life
+        +color
+        +set_speed() int
+        +set_vector() pygame.Vector2
+        +move_dir(dt) None
+        +randomize_dir(chance) None
+        +randomize_speed(chance) None
+        +random_square() MovingRect
+        +lerp_color(first, second, t) pygame.Color
+    }
+
+    class "GameConfig" {
+        +width
+        +height
+        +fps
+        +min_square_size
+        +max_square_size
+        +square_num
+        +max_speed
+    }
+
+    "pygame.rect.Rect" <|-- "MovingRect"
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Control Flow</h2>
+            <div class="diagram">
+                <div class="mermaid">
+graph TD
+    START["main()"] --> INIT["init_window()"]
+    INIT --> LOOP["update_screen()"]
+    LOOP --> EVENTS["handle_events()"]
+    LOOP --> TICK["Clock tick()"]
+    LOOP --> CREATE["create_moving_rects()"]
+    LOOP --> FOR["for each rectangle"]
+    FOR --> BOUNCE["wall_bounce()"]
+    FOR --> MOVE["move_dir()"]
+    FOR --> COLOR["lerp_color()"]
+    FOR --> AI["find_threat_and_prey()"]
+    AI --> STEER["run_and_chase_vect()"]
+    FOR --> LIFE["decrease curr_life"]
+    LIFE --> DEAD{"curr_life <= 0?"}
+    DEAD -->|Yes| REBIRTH["play sound and respawn"]
+    DEAD -->|No| KEEP["keep rectangle alive"]
+    REBIRTH --> DRAW["draw frame and UI"]
+    KEEP --> DRAW
+    DRAW --> LOOP
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Data Flow</h2>
+            <div class="diagram">
+                <div class="mermaid">
+graph LR
+    INPUT["Input state: rect positions, directions, lifespan"] --> PHYS["Physics: bounce and movement"]
+    PHYS --> AI["AI: threat/prey selection and steering"]
+    AI --> VIS["Visuals: color interpolation and drawing"]
+    VIS --> AUDIO["Audio: respawn sound"]
+    AUDIO --> NEXT["Next frame state"]
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Behavior Summary</h2>
+            <ul>
+                <li>Movement uses <code>dt</code> from the clock, so position updates are frame-scaled.</li>
+                <li><code>pygame.Vector2</code> stores direction, while speed is a scalar value.</li>
+                <li>Threat/prey logic compares rectangle area and distance to choose the closest larger and smaller rectangles.</li>
+                <li>Color fades from <code>START_COLOR</code> to <code>END_COLOR</code> using linear interpolation.</li>
+                <li>Expired rectangles are removed and replaced immediately to keep the object count stable.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Performance Notes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Area</th>
+                        <th>Observation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Frame update</td>
+                        <td>Linear over the current rectangle list for movement and drawing.</td>
+                    </tr>
+                    <tr>
+                        <td>Threat search</td>
+                        <td>Quadratic overall because each rectangle scans the full list for prey and threats.</td>
+                    </tr>
+                    <tr>
+                        <td>Rendering</td>
+                        <td>Simple draw calls with no batching or caching layer.</td>
+                    </tr>
+                    <tr>
+                        <td>Best optimization path</td>
+                        <td>Spatial partitioning would reduce the cost of proximity checks.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Limitations and Extensions</h2>
+            <p>The current implementation is intentionally simple: it keeps runtime state in globals, does not model collisions between rectangles, and uses full-list scans for threat detection. The easiest next step is to move steering constants into <code>GameConfig</code>; the largest scaling improvement would be a spatial grid or quadtree for neighbor lookup.</p>
+        </section>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: "default" });
+    </script>
+</body>
+</html>

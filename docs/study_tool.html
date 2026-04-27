@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<!-- STUDY_TOOL_TEMPLATE_VERSION: 2.0 -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Mastery Study Tool: Moving Squares</title>
+    <style>
+        :root {
+            --bg: #0d1424;
+            --surface: #101b32;
+            --surface-2: #152342;
+            --text: #edf4ff;
+            --muted: #a6b4d0;
+            --accent: #4fd1c5;
+            --accent-2: #f59e0b;
+            --danger: #f87171;
+            --border: rgba(255, 255, 255, 0.10);
+            --radius: 20px;
+            --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+            --soft-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+            --max-width: 1180px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(79, 209, 197, 0.18), transparent 24%),
+                radial-gradient(circle at 82% 8%, rgba(245, 158, 11, 0.20), transparent 22%),
+                radial-gradient(circle at 75% 82%, rgba(59, 130, 246, 0.16), transparent 26%),
+                linear-gradient(180deg, #09101d 0%, #0d1424 48%, #101a31 100%);
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: radial-gradient(circle at center, rgba(0,0,0,0.8), transparent 80%);
+            opacity: 0.5;
+        }
+
+        .page-shell {
+            width: min(var(--max-width), calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0 48px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, rgba(16, 27, 50, 0.96), rgba(21, 35, 66, 0.92));
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            padding: 28px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -12% -40% auto;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(79, 209, 197, 0.20), transparent 70%);
+            filter: blur(8px);
+            pointer-events: none;
+        }
+
+        .hero-top {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 11px;
+            height: 11px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 0 0 4px rgba(79, 209, 197, 0.12);
+        }
+
+        h1 {
+            margin: 12px 0 10px;
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            line-height: 1.04;
+            letter-spacing: -0.04em;
+            max-width: 12ch;
+        }
+
+        .hero-copy {
+            max-width: 70ch;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .hero-meta {
+            display: grid;
+            gap: 10px;
+            align-content: start;
+            min-width: min(100%, 300px);
+        }
+
+        .meta-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px 16px;
+            backdrop-filter: blur(6px);
+        }
+
+        .meta-card strong {
+            display: block;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+
+        .meta-card span {
+            color: var(--muted);
+            font-size: 0.93rem;
+            line-height: 1.45;
+        }
+
+        main {
+            display: grid;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .section {
+            background: linear-gradient(180deg, rgba(16, 27, 50, 0.92), rgba(18, 31, 57, 0.94));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--soft-shadow);
+            padding: 22px;
+        }
+
+        .section h2 {
+            margin: 0 0 14px;
+            font-size: 1.35rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section p {
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 0.9fr;
+            gap: 18px;
+        }
+
+        .summary-box {
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .summary-box ul {
+            margin: 0;
+            padding-left: 18px;
+            display: grid;
+            gap: 10px;
+            color: var(--muted);
+        }
+
+        .summary-box li span {
+            color: var(--text);
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 999px;
+            background: rgba(79, 209, 197, 0.10);
+            color: #d8fffb;
+            border: 1px solid rgba(79, 209, 197, 0.16);
+            font-size: 0.9rem;
+        }
+
+        .tag.accent-2 {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.18);
+            color: #fff0cf;
+        }
+
+        .mode-switcher {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .mode-actions {
+            display: inline-flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn,
+        .quiz-btn,
+        .card-btn {
+            appearance: none;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            font: inherit;
+            cursor: pointer;
+            transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, opacity 160ms ease;
+        }
+
+        .mode-btn {
+            padding: 11px 16px;
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text);
+            border-color: var(--border);
+            min-width: 128px;
+        }
+
+        .mode-btn:hover,
+        .quiz-btn:hover,
+        .card-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .mode-btn.is-active {
+            background: linear-gradient(135deg, var(--accent), #2dd4bf);
+            color: #072027;
+            border-color: rgba(255, 255, 255, 0.06);
+            font-weight: 700;
+        }
+
+        .mode-note {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        #flashcards {
+            display: block;
+        }
+
+        #flashcard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .flashcard {
+            perspective: 1200px;
+            min-height: 240px;
+            outline: none;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 240px;
+            transform-style: preserve-3d;
+            transition: transform 500ms cubic-bezier(.2,.8,.2,1);
+        }
+
+        .flashcard.is-flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04));
+            backface-visibility: hidden;
+            overflow: hidden;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            box-shadow: var(--soft-shadow);
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(180deg, rgba(79, 209, 197, 0.12), rgba(255, 255, 255, 0.04));
+        }
+
+        .card-kicker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 1.02rem;
+            line-height: 1.45;
+        }
+
+        .card-body {
+            margin: 0;
+            color: var(--text);
+            line-height: 1.65;
+            overflow-wrap: anywhere;
+        }
+
+        .card-source {
+            margin-top: auto;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .card-prompt {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--accent);
+            font-size: 0.88rem;
+            margin-top: auto;
+        }
+
+        .card-prompt::after {
+            content: "↺";
+            font-size: 1.1rem;
+        }
+
+        #quiz {
+            display: block;
+        }
+
+        #quiz-content {
+            display: grid;
+            gap: 14px;
+        }
+
+        .quiz-question {
+            display: none;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .quiz-question.is-active {
+            display: block;
+            animation: fadeIn 240ms ease-out;
+        }
+
+        .question-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .question-index {
+            font-weight: 700;
+            color: #d4f7f2;
+        }
+
+        .question-anchor {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .question-text {
+            margin: 0 0 14px;
+            font-size: 1.03rem;
+            line-height: 1.55;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 12px 13px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+        }
+
+        .option input {
+            margin-top: 3px;
+            accent-color: var(--accent);
+        }
+
+        .option span {
+            line-height: 1.45;
+        }
+
+        .quiz-nav {
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quiz-nav-buttons {
+            display: inline-flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quiz-btn {
+            padding: 11px 16px;
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text);
+            border-color: var(--border);
+            min-width: 104px;
+        }
+
+        .quiz-btn.primary {
+            background: linear-gradient(135deg, var(--accent-2), #f97316);
+            color: #1b1304;
+            font-weight: 800;
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .quiz-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #quiz-results {
+            margin-top: 14px;
+            color: var(--muted);
+            min-height: 1.5rem;
+        }
+
+        #results {
+            display: block;
+        }
+
+        #results-summary {
+            display: grid;
+            gap: 12px;
+        }
+
+        .results-banner {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(79, 209, 197, 0.14), rgba(245, 158, 11, 0.12));
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        .results-score {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .results-subtitle {
+            color: var(--muted);
+            margin: 2px 0 0;
+        }
+
+        .review-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .review-item {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 14px 16px;
+        }
+
+        .review-top {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .review-top strong {
+            color: #e6f8f6;
+        }
+
+        .review-meta {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .review-answer {
+            margin: 6px 0 0;
+            color: var(--text);
+            line-height: 1.55;
+        }
+
+        .answer-correct {
+            color: #b6f7c6;
+        }
+
+        .answer-wrong {
+            color: #ffc9c9;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            font-size: 0.86rem;
+        }
+
+        .section-label::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .summary-heading {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .summary-heading h2 {
+            margin-bottom: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 1080px) {
+            #flashcard-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page-shell {
+                width: min(calc(100% - 20px), var(--max-width));
+                padding-top: 14px;
+            }
+
+            .hero, .section {
+                border-radius: 18px;
+                padding: 18px;
+            }
+
+            #flashcard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-top {
+                gap: 14px;
+            }
+
+            .mode-switcher {
+                align-items: flex-start;
+            }
+
+            .mode-btn,
+            .quiz-btn {
+                width: 100%;
+            }
+
+            .mode-actions,
+            .quiz-nav-buttons {
+                width: 100%;
+            }
+        }
+
+        body[data-mode="flashcards"] #quiz,
+        body[data-mode="flashcards"] #results {
+            display: none;
+        }
+
+        body[data-mode="quiz"] #flashcards {
+            display: none;
+        }
+
+        body[data-submitted="false"] #results {
+            display: none;
+        }
+    </style>
+</head>
+<body data-mode="flashcards" data-submitted="false">
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero-top">
+                <div>
+                    <div class="eyebrow">Project Mastery Study Tool</div>
+                    <h1>Moving Squares</h1>
+                    <p class="hero-copy">
+                        A focused flash quiz built from the actual <strong>main.py</strong> implementation. It covers the Pygame setup, rectangle movement, threat/prey steering, wall bouncing, lifespan-based color changes, and the main loop that keeps the simulation running.
+                    </p>
+                </div>
+                <div class="hero-meta">
+                    <div class="meta-card">
+                        <strong>Difficulty</strong>
+                        <span>Medium</span>
+                    </div>
+                    <div class="meta-card">
+                        <strong>Quiz size</strong>
+                        <span>15 questions, 1 point each</span>
+                    </div>
+                    <div class="meta-card">
+                        <strong>Scope</strong>
+                        <span>Single-file study tool generated from the current repository code.</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main id="app">
+            <section id="study-summary" class="section">
+                <div class="summary-heading">
+                    <h2>Study Summary</h2>
+                    <span class="section-label">Source: main.py</span>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-box">
+                        <p>
+                            The code centers on a small Pygame simulation with a clear runtime pipeline: initialize the window, build a list of moving rectangles, handle events, update physics, apply threat/prey steering, draw the scene, and continue until the window closes. The strongest themes are configuration management, vector math, per-frame timing, and behavior updates based on rectangle size and distance.
+                        </p>
+                        <div class="tag-row">
+                            <span class="tag">Game loop</span>
+                            <span class="tag">Vector math</span>
+                            <span class="tag accent-2">Threat/prey AI</span>
+                            <span class="tag">Lifespan + color lerp</span>
+                            <span class="tag accent-2">Wall bounce</span>
+                            <span class="tag">Audio respawn</span>
+                        </div>
+                    </div>
+                    <div class="summary-box">
+                        <ul>
+                            <li><span><strong>GameConfig</strong> centralizes screen size, FPS, square count, and speed limits.</span></li>
+                            <li><span><strong>MovingRect</strong> extends <code>pygame.rect.Rect</code> with speed, direction, area, lifespan, and color.</span></li>
+                            <li><span><strong>update_screen()</strong> coordinates event handling, movement, drawing, respawn, and UI text.</span></li>
+                            <li><span><strong>find_threat_and_prey()</strong> performs a full scan to locate the nearest larger and smaller rectangles.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="mode-switcher" class="section">
+                <div class="mode-switcher">
+                    <div>
+                        <h2>Mode Switcher</h2>
+                        <p class="mode-note">Switch between flashcards for quick recall and the quiz for graded practice.</p>
+                    </div>
+                    <div class="mode-actions" role="tablist" aria-label="Study modes">
+                        <button class="mode-btn is-active" type="button" data-mode-target="flashcards">Flashcards</button>
+                        <button class="mode-btn" type="button" data-mode-target="quiz">Quiz</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="flashcards" class="section">
+                <div class="summary-heading">
+                    <h2>Flashcards</h2>
+                    <span class="section-label">Click or press Enter/Space to flip</span>
+                </div>
+                <div id="flashcard-grid"></div>
+            </section>
+
+            <section id="quiz" class="section">
+                <div class="summary-heading">
+                    <h2>Quiz</h2>
+                    <span class="section-label">15 questions</span>
+                </div>
+                <div id="quiz-content"></div>
+                <div class="quiz-nav"></div>
+                <div id="quiz-results" aria-live="polite"></div>
+            </section>
+
+            <section id="results" class="section">
+                <div class="summary-heading">
+                    <h2>Results</h2>
+                    <span class="section-label">Shown after submission</span>
+                </div>
+                <div id="results-summary"></div>
+                <div id="results-review" class="review-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const flashcards = [
+            {
+                id: "fc-0",
+                frontTitle: "GameConfig as the control panel",
+                frontBody: "What does the GameConfig dataclass centralize in main.py?",
+                backTitle: "Why it matters",
+                backBody: "It stores the window size, FPS, square count, square size limits, and maximum speed in one place so the rest of the code can read consistent values.",
+                anchor: "main.py :: GameConfig"
+            },
+            {
+                id: "fc-1",
+                frontTitle: "MovingRect extends pygame.Rect",
+                frontBody: "Why does MovingRect inherit from pygame.rect.Rect instead of storing x, y, width, and height separately?",
+                backTitle: "Why it matters",
+                backBody: "The subclass stays compatible with pygame drawing and rectangle properties like centerx and centery, while still adding custom speed, vector, lifespan, and color behavior.",
+                anchor: "main.py :: class MovingRect"
+            },
+            {
+                id: "fc-2",
+                frontTitle: "Speed depends on width",
+                frontBody: "What does set_speed() do with the rectangle width?",
+                backTitle: "Why it matters",
+                backBody: "It divides the randomly chosen speed by self.width, so larger rectangles move more slowly than smaller ones.",
+                anchor: "main.py :: MovingRect.set_speed"
+            },
+            {
+                id: "fc-3",
+                frontTitle: "Direction as a unit vector",
+                frontBody: "What does set_vector() produce?",
+                backTitle: "Why it matters",
+                backBody: "It creates a direction from a random angle and normalizes it, so the rectangle has direction without storing speed inside the vector itself.",
+                anchor: "main.py :: MovingRect.set_vector"
+            },
+            {
+                id: "fc-4",
+                frontTitle: "Frame-scaled motion",
+                frontBody: "Why does move_dir(dt) multiply by dt?",
+                backTitle: "Why it matters",
+                backBody: "The elapsed frame time scales the position change, so movement remains tied to real frame duration instead of a fixed number of updates.",
+                anchor: "main.py :: MovingRect.move_dir"
+            },
+            {
+                id: "fc-5",
+                frontTitle: "Wall bouncing",
+                frontBody: "What is wall_bounce() doing when a rectangle reaches the border?",
+                backTitle: "Why it matters",
+                backBody: "It flips the matching vector component and clamps the position so the rectangle stays inside the window bounds.",
+                anchor: "main.py :: wall_bounce"
+            },
+            {
+                id: "fc-6",
+                frontTitle: "Threat and prey scan",
+                frontBody: "What kind of search does find_threat_and_prey() perform?",
+                backTitle: "Why it matters",
+                backBody: "For each rectangle it scans the full list to find the closest larger rectangle as threat and the closest smaller rectangle as prey.",
+                anchor: "main.py :: find_threat_and_prey"
+            },
+            {
+                id: "fc-7",
+                frontTitle: "Blending flee and chase",
+                frontBody: "What is run_and_chase_vect() combining?",
+                backTitle: "Why it matters",
+                backBody: "It blends the current vector with a new direction built from run-away and chase vectors, using a danger coefficient to decide how strongly to steer.",
+                anchor: "main.py :: run_and_chase_vect"
+            },
+            {
+                id: "fc-8",
+                frontTitle: "Random jitter hooks",
+                frontBody: "What do randomize_dir() and randomize_speed() change?",
+                backTitle: "Why it matters",
+                backBody: "They occasionally rotate the direction vector or replace the speed scalar, adding small unpredictable changes to the motion.",
+                anchor: "main.py :: randomize_dir / randomize_speed"
+            },
+            {
+                id: "fc-9",
+                frontTitle: "Color over time",
+                frontBody: "How does lerp_color() help the rectangles fade?",
+                backTitle: "Why it matters",
+                backBody: "It interpolates between two colors based on the lifespan ratio so newer rectangles look bluer and older ones look redder.",
+                anchor: "main.py :: MovingRect.lerp_color"
+            },
+            {
+                id: "fc-10",
+                frontTitle: "Initialization order",
+                frontBody: "Why must init_window() run before update_screen()?",
+                backTitle: "Why it matters",
+                backBody: "update_screen() expects SCREEN, CLOCK, FONT, colors, and the sound to already exist, and init_window() creates that state.",
+                anchor: "main.py :: init_window + update_screen"
+            },
+            {
+                id: "fc-11",
+                frontTitle: "Respawn behavior",
+                frontBody: "What happens when a rectangle’s lifespan reaches zero?",
+                backTitle: "Why it matters",
+                backBody: "It is removed from the alive list, the rebirth sound plays, and a new random square is spawned to keep the population stable.",
+                anchor: "main.py :: update_screen respawn block"
+            }
+        ];
+
+        const quizData = [
+            {
+                id: "q-0",
+                category: "behavior",
+                anchor: "main.py :: GameConfig",
+                question: "What is the main job of GameConfig in this project?",
+                options: [
+                    "Store the window, timing, and square settings in one place",
+                    "Hold the sound file and audio volume only",
+                    "Store the current direction of every rectangle",
+                    "Draw the background and UI text"
+                ],
+                answer: 0,
+                explanation: "GameConfig centralizes the size, FPS, square count, size limits, and max speed values so the rest of the code can reuse them consistently."
+            },
+            {
+                id: "q-1",
+                category: "behavior",
+                anchor: "main.py :: MovingRect.__init__ / area",
+                question: "Why does MovingRect store self.area when it is created?",
+                options: [
+                    "So threat/prey comparisons can use size without recalculating area each time",
+                    "So the rectangle can bounce faster off the wall",
+                    "So pygame can automatically draw the rectangle in color",
+                    "So the FPS counter can read the object size"
+                ],
+                answer: 0,
+                explanation: "The area is reused in find_threat_and_prey() to decide whether another rectangle is larger or smaller, which avoids recomputing width times height every pass."
+            },
+            {
+                id: "q-2",
+                category: "behavior",
+                anchor: "main.py :: MovingRect.move_dir",
+                question: "What does the dt value in move_dir(dt) control?",
+                options: [
+                    "How much the position changes during the current frame",
+                    "Which sound file gets played on respawn",
+                    "Whether the rectangle becomes a threat or prey",
+                    "How many rectangles spawn at startup"
+                ],
+                answer: 0,
+                explanation: "dt comes from Clock.tick() and scales the position change, so movement depends on elapsed frame time."
+            },
+            {
+                id: "q-3",
+                category: "behavior",
+                anchor: "main.py :: main / init_window / update_screen",
+                question: "What is the startup order in main()?",
+                options: [
+                    "init_window() -> update_screen() -> pygame.quit()",
+                    "update_screen() -> init_window() -> pygame.quit()",
+                    "pygame.quit() -> init_window() -> update_screen()",
+                    "create_moving_rects() -> init_window() -> update_screen()"
+                ],
+                answer: 0,
+                explanation: "main() initializes the window first, then runs the loop, and finally calls pygame.quit() when the loop ends."
+            },
+            {
+                id: "q-4",
+                category: "debugging",
+                anchor: "main.py :: update_screen",
+                question: "Why can update_screen() raise a RuntimeError before entering the loop?",
+                options: [
+                    "Because SCREEN or CLOCK is still None and init_window() was not called",
+                    "Because every rectangle always dies immediately",
+                    "Because the FPS counter is too fast for pygame",
+                    "Because find_threat_and_prey() returns None for every rectangle"
+                ],
+                answer: 0,
+                explanation: "update_screen() checks that the display surface and clock were initialized first; otherwise it raises a clear error about calling init_window()."
+            },
+            {
+                id: "q-5",
+                category: "debugging",
+                anchor: "main.py :: run_and_chase_vect",
+                question: "What problem does the + 0.001 in the danger formula avoid?",
+                options: [
+                    "Division by zero when two rectangles overlap or nearly overlap",
+                    "The sound file playing too loudly",
+                    "The rectangle becoming too large on screen",
+                    "The color interpolation producing red instead of blue"
+                ],
+                answer: 0,
+                explanation: "The small epsilon prevents the distance term from becoming zero, which would otherwise make the danger calculation unstable."
+            },
+            {
+                id: "q-6",
+                category: "debugging",
+                anchor: "main.py :: find_threat_and_prey",
+                question: "Why does find_threat_and_prey() skip the rectangle when rect is running_rect?",
+                options: [
+                    "To prevent the rectangle from being compared against itself",
+                    "To make the rectangle move twice as fast",
+                    "To force the rectangle to respawn",
+                    "To change the rectangle's color at the center of the screen"
+                ],
+                answer: 0,
+                explanation: "If the function did not skip itself, the running rectangle could be treated as its own threat or prey, which would break the search logic."
+            },
+            {
+                id: "q-7",
+                category: "design",
+                anchor: "main.py :: class MovingRect",
+                question: "Why is MovingRect a subclass of pygame.rect.Rect here?",
+                options: [
+                    "It keeps pygame rectangle compatibility while adding custom movement and lifespan state",
+                    "It removes the need for any vector math",
+                    "It automatically handles the main loop for you",
+                    "It makes the code multi-threaded"
+                ],
+                answer: 0,
+                explanation: "The subclass can still be used like a pygame rectangle, but it also carries speed, vector, lifespan, and color data in one object."
+            },
+            {
+                id: "q-8",
+                category: "design",
+                anchor: "main.py :: MovingRect.set_vector / set_speed / run_and_chase_vect",
+                question: "Why keep direction as a vector and speed as a separate scalar?",
+                options: [
+                    "So steering can change direction without mixing it with movement speed",
+                    "So every rectangle always uses the same velocity",
+                    "So the program does not need any math functions",
+                    "So the sound system can read the movement values"
+                ],
+                answer: 0,
+                explanation: "Direction and speed are controlled independently, which makes fleeing, chasing, jitter, and speed changes easier to manage."
+            },
+            {
+                id: "q-9",
+                category: "design",
+                anchor: "main.py :: find_threat_and_prey",
+                question: "Why might the project keep the full-list threat/prey scan even though it is not fast?",
+                options: [
+                    "It is easy to read and good enough for a small rectangle count",
+                    "It guarantees O(1) performance",
+                    "It removes the need to draw anything on screen",
+                    "It makes the audio louder when rectangles are larger"
+                ],
+                answer: 0,
+                explanation: "The current approach is simple and readable, which fits a small project, even though the cost grows quadratically with the number of rectangles."
+            },
+            {
+                id: "q-10",
+                category: "edge",
+                anchor: "main.py :: wall_bounce",
+                question: "What does wall_bounce() do when a rectangle would leave the window on the x-axis?",
+                options: [
+                    "Flips the x component of the vector and clamps the x position inside the window",
+                    "Deletes the rectangle and respawns it immediately",
+                    "Changes the rectangle color from blue to red",
+                    "Sets the FPS counter to zero"
+                ],
+                answer: 0,
+                explanation: "When the predicted x position crosses the border, the x component is reversed and the position is clamped so the rectangle stays visible."
+            },
+            {
+                id: "q-11",
+                category: "edge",
+                anchor: "main.py :: find_threat_and_prey",
+                question: "What happens for the biggest rectangle when find_threat_and_prey() runs correctly?",
+                options: [
+                    "Threat stays None, and it may still find smaller prey",
+                    "Threat becomes the smallest rectangle in the list",
+                    "It always selects itself as the prey",
+                    "The function raises an exception because no threat exists"
+                ],
+                answer: 0,
+                explanation: "The biggest rectangle has no larger threat, so threat remains None, but smaller rectangles can still be chosen as prey."
+            },
+            {
+                id: "q-12",
+                category: "edge",
+                anchor: "main.py :: randomize_dir / randomize_speed",
+                question: "What input range do the randomize methods enforce with assert?",
+                options: [
+                    "Chance must stay between 0.0 and 1.0 inclusive",
+                    "Chance must be a whole number above 10",
+                    "Chance must always equal 0.5",
+                    "Chance must be negative so the vector flips"
+                ],
+                answer: 0,
+                explanation: "Both methods assert that the probability stays inside [0.0, 1.0], which keeps the random decision meaningful."
+            },
+            {
+                id: "q-13",
+                category: "big-o",
+                anchor: "main.py :: find_threat_and_prey",
+                question: "What is the complexity of find_threat_and_prey() for one rectangle when there are n rectangles total?",
+                options: [
+                    "O(n), because it scans the list once",
+                    "O(log n), because it uses a binary search",
+                    "O(1), because it uses cached values only",
+                    "O(n²), because it sorts the list every time"
+                ],
+                answer: 0,
+                explanation: "For one running rectangle, the function loops through the rectangle list once, so that call is linear in n."
+            },
+            {
+                id: "q-14",
+                category: "big-o",
+                anchor: "main.py :: update_screen + find_threat_and_prey",
+                question: "What is the dominant per-frame complexity of the simulation loop, ignoring rendering details?",
+                options: [
+                    "O(n²), because each rectangle can call a full list scan for threat/prey",
+                    "O(1), because the window size never changes",
+                    "O(log n), because pygame.display.flip() is logarithmic",
+                    "O(n³), because color interpolation uses three channels"
+                ],
+                answer: 0,
+                explanation: "The loop iterates over n rectangles, and each one may scan all n rectangles again for threat/prey detection, so the overall cost is quadratic."
+            }
+        ];
+
+        const state = {
+            mode: "flashcards",
+            currentQuestion: 0,
+            answers: Array(quizData.length).fill(null),
+            submitted: false
+        };
+
+        const escapeHtml = (value) => String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+
+        function renderFlashcards() {
+            const grid = document.getElementById("flashcard-grid");
+            grid.innerHTML = flashcards.map((card) => `
+                <article class="flashcard" tabindex="0" role="button" aria-label="Flip flashcard about ${escapeHtml(card.frontTitle)}" data-card-id="${card.id}">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <div>
+                                <div class="card-kicker">Flashcard<span>${escapeHtml(card.anchor)}</span></div>
+                                <h3 class="card-title">${escapeHtml(card.frontTitle)}</h3>
+                                <p class="card-body">${escapeHtml(card.frontBody)}</p>
+                            </div>
+                            <div class="card-prompt">Flip to see the explanation</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div>
+                                <div class="card-kicker">Answer<span>${escapeHtml(card.anchor)}</span></div>
+                                <h3 class="card-title">${escapeHtml(card.backTitle)}</h3>
+                                <p class="card-body">${escapeHtml(card.backBody)}</p>
+                            </div>
+                            <div class="card-source">Trace this idea back to ${escapeHtml(card.anchor)}.</div>
+                        </div>
+                    </div>
+                </article>
+            `).join("");
+
+            grid.querySelectorAll(".flashcard").forEach((card) => {
+                const toggle = () => card.classList.toggle("is-flipped");
+                card.addEventListener("click", toggle);
+                card.addEventListener("keydown", (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        toggle();
+                    }
+                });
+            });
+        }
+
+        function initializeQuizDOM() {
+            const quizContent = document.getElementById("quiz-content");
+            quizContent.innerHTML = quizData.map((item, index) => `
+                <article class="quiz-question${index === 0 ? " is-active" : ""}" id="${item.id}" data-index="${index}">
+                    <div class="question-head">
+                        <div class="question-index">Question ${index + 1} of ${quizData.length}</div>
+                        <div class="question-anchor">${escapeHtml(item.anchor)} · ${escapeHtml(item.category)}</div>
+                    </div>
+                    <p class="question-text">${escapeHtml(item.question)}</p>
+                    <div class="options">
+                        ${item.options.map((option, optionIndex) => `
+                            <label class="option">
+                                <input type="radio" name="${item.id}" value="${optionIndex}" ${state.answers[index] === optionIndex ? "checked" : ""} ${state.submitted ? "disabled" : ""} />
+                                <span>${escapeHtml(option)}</span>
+                            </label>
+                        `).join("")}
+                    </div>
+                </article>
+            `).join("");
+
+            quizContent.querySelectorAll("input[type='radio']").forEach((input) => {
+                input.addEventListener("change", (event) => {
+                    const questionIndex = Number(event.target.name.replace("q-", ""));
+                    state.answers[questionIndex] = Number(event.target.value);
+                    updateQuizNav();
+                });
+            });
+
+            const nav = document.querySelector(".quiz-nav");
+            nav.innerHTML = `
+                <div class="quiz-nav-buttons">
+                    <button class="quiz-btn" type="button" id="prev-question">Previous</button>
+                    <button class="quiz-btn" type="button" id="next-question">Next</button>
+                    <button class="quiz-btn primary" type="button" id="submit-quiz">Submit</button>
+                </div>
+                <div class="mode-note" id="quiz-progress"></div>
+            `;
+
+            document.getElementById("prev-question").addEventListener("click", prevQuestion);
+            document.getElementById("next-question").addEventListener("click", nextQuestion);
+            document.getElementById("submit-quiz").addEventListener("click", submitQuiz);
+
+            showQuestion(0);
+            updateQuizNav();
+        }
+
+        function showQuestion(index) {
+            state.currentQuestion = index;
+            const questions = document.querySelectorAll(".quiz-question");
+            questions.forEach((question, questionIndex) => {
+                question.classList.toggle("is-active", questionIndex === index);
+            });
+            updateQuizNav();
+        }
+
+        function updateQuizNav() {
+            const prevButton = document.getElementById("prev-question");
+            const nextButton = document.getElementById("next-question");
+            const submitButton = document.getElementById("submit-quiz");
+            const progress = document.getElementById("quiz-progress");
+            const current = state.currentQuestion;
+            const total = quizData.length;
+            const answered = state.answers.filter((value) => value !== null).length;
+            const quizContent = document.getElementById("quiz-content");
+            const quizNav = document.querySelector(".quiz-nav");
+
+            if (state.submitted) {
+                prevButton.disabled = true;
+                nextButton.disabled = true;
+                submitButton.disabled = true;
+                quizContent.hidden = true;
+                quizNav.hidden = true;
+                progress.textContent = `Submitted ${answered}/${total} answers.`;
+                return;
+            }
+
+            quizContent.hidden = false;
+            quizNav.hidden = false;
+            prevButton.disabled = current === 0;
+            nextButton.disabled = current === total - 1;
+            nextButton.classList.toggle("hidden", current === total - 1);
+            submitButton.classList.toggle("hidden", current !== total - 1);
+            submitButton.disabled = false;
+            progress.textContent = `Answered ${answered} of ${total}. You are on question ${current + 1}.`;
+        }
+
+        function prevQuestion() {
+            if (state.currentQuestion > 0) {
+                showQuestion(state.currentQuestion - 1);
+            }
+        }
+
+        function nextQuestion() {
+            if (state.currentQuestion < quizData.length - 1) {
+                showQuestion(state.currentQuestion + 1);
+            }
+        }
+
+        function submitQuiz() {
+            state.submitted = true;
+            const score = quizData.reduce((accumulator, item, index) => accumulator + (state.answers[index] === item.answer ? 1 : 0), 0);
+            renderResults(score);
+            document.body.dataset.submitted = "true";
+            const resultsSection = document.getElementById("results");
+            resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            updateQuizNav();
+        }
+
+        function renderResults(score) {
+            const total = quizData.length;
+            const summary = document.getElementById("results-summary");
+            const review = document.getElementById("results-review");
+            const brief = document.getElementById("quiz-results");
+
+            summary.innerHTML = `
+                <div class="results-banner">
+                    <div>
+                        <div class="results-score">Score: ${score} / ${total}</div>
+                        <p class="results-subtitle">Medium difficulty · 1 point per question · answers grounded in main.py.</p>
+                    </div>
+                    <div class="section-label">${score === total ? "Perfect run" : "Review your misses"}</div>
+                </div>
+            `;
+
+            review.innerHTML = quizData.map((item, index) => {
+                const chosenIndex = state.answers[index];
+                const chosenText = chosenIndex === null ? "No answer selected" : item.options[chosenIndex];
+                const correct = chosenIndex === item.answer;
+                return `
+                    <article class="review-item">
+                        <div class="review-top">
+                            <strong>Question ${index + 1} · ${escapeHtml(item.category)}</strong>
+                            <span class="review-meta">${escapeHtml(item.anchor)}</span>
+                        </div>
+                        <p class="review-answer ${correct ? "answer-correct" : "answer-wrong"}"><strong>Your answer:</strong> ${escapeHtml(chosenText)}</p>
+                        <p class="review-answer"><strong>Correct answer:</strong> ${escapeHtml(item.options[item.answer])}</p>
+                        <p class="review-answer">${escapeHtml(item.explanation)}</p>
+                    </article>
+                `;
+            }).join("");
+
+            brief.innerHTML = `You scored ${score} out of ${total}. The detailed review is shown below.`;
+        }
+
+        function switchMode(mode) {
+            state.mode = mode;
+            document.body.dataset.mode = mode;
+            document.querySelectorAll(".mode-btn").forEach((button) => {
+                button.classList.toggle("is-active", button.dataset.modeTarget === mode);
+            });
+        }
+
+        function validateStudyToolDOM() {
+            const missing = [];
+            const requiredIds = ["quiz-content", "quiz-results"];
+            requiredIds.forEach((id) => {
+                if (!document.getElementById(id)) {
+                    missing.push(`#${id}`);
+                }
+            });
+
+            if (!document.querySelector(".quiz-nav")) {
+                missing.push(".quiz-nav");
+            }
+
+            for (let index = 0; index < quizData.length; index += 1) {
+                if (!document.getElementById(`q-${index}`)) {
+                    missing.push(`#q-${index}`);
+                }
+            }
+
+            const cards = document.querySelectorAll(".flashcard");
+            if (!cards.length) {
+                missing.push(".flashcard");
+            }
+            cards.forEach((card, index) => {
+                if (!card.querySelector(".flashcard-front")) {
+                    missing.push(`.flashcard-front (card ${index})`);
+                }
+                if (!card.querySelector(".flashcard-back")) {
+                    missing.push(`.flashcard-back (card ${index})`);
+                }
+            });
+
+            if (missing.length) {
+                console.error("Study tool DOM validation failed", { missing });
+                return false;
+            }
+
+            return true;
+        }
+
+        function initializeStudyTool() {
+            renderFlashcards();
+            initializeQuizDOM();
+            validateStudyToolDOM();
+
+            document.querySelectorAll(".mode-btn").forEach((button) => {
+                button.addEventListener("click", () => {
+                    switchMode(button.dataset.modeTarget);
+                });
+            });
+
+            document.body.dataset.mode = state.mode;
+            document.body.dataset.submitted = String(state.submitted);
+        }
+
+        initializeStudyTool();
+    </script>
+</body>
+</html>
