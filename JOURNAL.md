@@ -194,3 +194,19 @@ Could you take a look at it and provide me with stubs and hint to improve it? Do
 - **Hook Version**: 1.02
 - **Date**: 27-04-2026 10:53
 - **Prompt**: generate the architecture documents for this project
+
+### **New Interaction**
+- **Agent Version**: Haiku 4.5
+- **Date**: 27-04-2026 10:55
+- **User**: artem.iavchunovskii@epita.fr
+- **Prompt**: generate the architecture documents for this project
+- **CoPilot Mode**: Architecture Graphs
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Changes Made**: Generated `docs/architecture.md` with comprehensive architecture documentation and `docs/architecture.html` with interactive Mermaid diagrams. Diagrams include: system architecture (module organization), game loop sequence, class hierarchy (MovingRect), AI behavior logic (threat/prey detection), data flow (frame processing), module dependencies, global configuration state, performance characteristics, design decisions, threading model, error handling, and extensibility points.
+- **Context and Reasons for Changes**: The project needed detailed architecture documentation visualizing the moving squares pygame application. The Markdown file provides reference documentation, while the HTML file delivers an interactive, browser-ready dashboard with 8 Mermaid diagrams covering module organization, sequencing, AI logic, data flow, and dependencies. Both documents preserve the code structure without modifications and serve as learning and maintenance references.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 27-04-2026 11:01
+- **Prompt**: generate the architecture documents for this project
