@@ -16,6 +16,7 @@ class GameConfig:
     randomize_dir_chance: float = 0.02
     randomize_speed_chance: float = 0.01
     lifespan: tuple[int, int] = (10, 25)
+    trails_length: int = 30
 
 
 CONFIG: GameConfig = GameConfig()
@@ -26,6 +27,7 @@ FONT: pygame.font.SysFont = None
 REBIRTH_SOUND: pygame.mixer.Sound = None
 START_COLOR: pygame.Color = None
 END_COLOR: pygame.Color = None
+LINE_COLOR: pygame.Color = None
 
 class MovingRect(pygame.rect.Rect):
     """Subclass of pygame.rect with direction properties"""
@@ -38,6 +40,7 @@ class MovingRect(pygame.rect.Rect):
         self.max_life = random.randint(CONFIG.lifespan[0], CONFIG.lifespan[1]) * 1000 # milliseconds, used for calculating color
         self.curr_life = self.max_life
         self.color = START_COLOR
+        self.last_positions = []
 
 
     def set_speed(self) -> int:
@@ -73,6 +76,11 @@ class MovingRect(pygame.rect.Rect):
 
     def check_collision(self, other: MovingRect): # q4
         return self.colliderect(other)
+    
+    def draw_trail(self): # q7
+        for i in range(0, CONFIG.trails_length-1, 2):
+            pygame.draw.line(SCREEN, LINE_COLOR, self.last_positions[i], self.last_positions[i+1])
+
 
     @staticmethod
     def random_square(size=None) -> MovingRect:
@@ -93,7 +101,7 @@ class MovingRect(pygame.rect.Rect):
 
 def init_window() -> None:
     """Initialize pygame window"""
-    global SCREEN, CLOCK, IS_OPEN, FONT, START_COLOR, END_COLOR, REBIRTH_SOUND
+    global SCREEN, CLOCK, IS_OPEN, FONT, START_COLOR, END_COLOR, LINE_COLOR, REBIRTH_SOUND
 
     pygame.init()
     SCREEN = pygame.display.set_mode((CONFIG.width, CONFIG.height))
@@ -105,6 +113,7 @@ def init_window() -> None:
     REBIRTH_SOUND.set_volume(0.5)
     START_COLOR = pygame.Color(66, 135, 245)
     END_COLOR = pygame.Color(245, 66, 66)
+    LINE_COLOR = pygame.Color(100,100,255)
 
     IS_OPEN = True
 
@@ -147,6 +156,7 @@ def wall_bounce(rect: MovingRect, dt: int) -> MovingRect:
         rect.y = max(0, min(rect.y, CONFIG.height - rect.height))
 
     return rect
+
     
 def find_threat_and_prey(running_rect: MovingRect, rects: list[MovingRect]) -> tuple[MovingRect | None, MovingRect | None]:
     """Given rectangle, find closest rectangle that's bigger than it (threat) and smaller (prey)"""
@@ -221,6 +231,10 @@ def update_screen() -> None:
         to_respawn = []
 
         for rect in rects:
+            rect.last_positions.append((rect.x, rect.y))
+            if len(rect.last_positions) > CONFIG.trails_length:
+                rect.last_positions.pop(0)
+                rect.draw_trail()
             rect = wall_bounce(rect, dt)
             rect.move_dir(dt)
 
