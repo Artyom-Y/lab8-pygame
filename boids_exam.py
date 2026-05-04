@@ -85,7 +85,10 @@ class Boid:
     # TODO: Implement Random Steering of the velocity vector to create more natural movement
     def _random_steer(self, spread: float = 0.2) -> None:
         # # Randomly steer a bit to create more natural movement
-        pass
+        vect = pygame.Vector2(self.vx, self.vy)
+        vect = vect.rotate(random.uniform(-spread//2, spread//2))
+        self.vx = vect.x
+        self.vy = vect.y
 
 
     # TODO: Implement the three main boid behaviors: separation, alignment, and cohesion
