@@ -239,6 +239,10 @@ def update_screen() -> None:
             if prey:
                 if rect.check_collision(prey):
                     prey.curr_life = 0 # it will respawn either this or next frame
+                    if rect.area <= 2 * (CONFIG.max_square_size ** 2):
+                        rect.width += prey.width // 3 # q6. accounting for speed change and size threshold
+                        rect.height += prey.height // 3
+                        rect.set_speed() 
 
             #life span feature
             rect.curr_life -= dt
