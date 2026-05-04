@@ -71,6 +71,9 @@ class MovingRect(pygame.rect.Rect):
         if random.random() <= chance:
             self.speed = self.set_speed()
 
+    def check_collision(self, other: MovingRect): # q4
+        return self.colliderect(other)
+
     @staticmethod
     def random_square(size=None) -> MovingRect:
         x = random.randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
@@ -122,7 +125,7 @@ def create_moving_rects(n = None, param = None) -> list[MovingRect]:
         for _ in range(n):
             rect = MovingRect.random_square()
             rects.append(rect)
-    elif param is not None:
+    elif param is not None: # q1
         nums = param.keys()
         for num in nums:
             for _ in range(int(num)):
@@ -232,6 +235,11 @@ def update_screen() -> None:
             threat, prey = find_threat_and_prey(rect, rects)
             rect.vector = run_and_chase_vect(rect, threat, prey, 5)
 
+            # q5 - eating
+            if prey:
+                if rect.check_collision(prey):
+                    prey.curr_life = 0 # it will respawn either this or next frame
+
             #life span feature
             rect.curr_life -= dt
             if rect.curr_life <= 0:
@@ -243,7 +251,7 @@ def update_screen() -> None:
         rects = alive
 
         for reborn_rect in to_respawn:
-            rects.append(MovingRect.random_square(reborn_rect.height)) # i could do reborn_rect.width too, they're equal
+            rects.append(MovingRect.random_square(reborn_rect.height)) # q2: i could do reborn_rect.width too, they're equal
             
 
         # interface
@@ -251,7 +259,7 @@ def update_screen() -> None:
         # rect_counter = pygame.font.Font.render(FONT, f"Total rects: {CONFIG.square_num}", True, (255, 255, 255)) doesn't work properly after q2
 
         SCREEN.blit(fps_counter, (10, 10))
-        SCREEN.blit(rect_counter, (10, 30))
+        # SCREEN.blit(rect_counter, (10, 30))
 
         pygame.display.flip()
         
