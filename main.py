@@ -79,7 +79,10 @@ class MovingRect(pygame.rect.Rect):
     
     def draw_trail(self): # q7
         for i in range(0, CONFIG.trails_length-1, 2):
-            pygame.draw.line(SCREEN, LINE_COLOR, self.last_positions[i], self.last_positions[i+1])
+            start = self.last_positions[i]
+            finish = self.last_positions[i+1]
+            if abs(start[0] - finish[0]) < CONFIG.width // 2 and abs(start[1] - finish[1]) < CONFIG.height // 2: # don't draw lines with wall_warp
+                pygame.draw.line(SCREEN, LINE_COLOR, start, finish)
 
 
     @staticmethod
@@ -154,6 +157,21 @@ def wall_bounce(rect: MovingRect, dt: int) -> MovingRect:
     if new_y <= 0 or new_y + rect.height >= CONFIG.height:
         rect.vector.y *= -1
         rect.y = max(0, min(rect.y, CONFIG.height - rect.height))
+
+    return rect
+
+def wall_warp(rect: MovingRect, dt: int) -> MovingRect: # q2: NOTE: buggy, but you can turn it on in update_screen near wall_bounce
+    """Make rectangle change direction if it's near border"""
+
+    if rect.x < rect.width:
+        rect.x = CONFIG.width - rect.width
+    elif rect.x > CONFIG.width:
+        rect.x = rect.width
+
+    if rect.y < rect.height:
+        rect.y = CONFIG.height - rect.height
+    elif rect.y > CONFIG.height:
+        rect.y = rect.height
 
     return rect
 
@@ -236,6 +254,7 @@ def update_screen() -> None:
                 rect.last_positions.pop(0)
                 rect.draw_trail()
             rect = wall_bounce(rect, dt)
+            #rect = wall_warp(rect, dt) #q2 toggle
             rect.move_dir(dt)
 
             t = rect.curr_life / rect.max_life
