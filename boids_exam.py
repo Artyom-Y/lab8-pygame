@@ -100,6 +100,9 @@ class Boid:
     # Then sum these vectors to get the overall separation steering force.
     def _separation(self, boids: List['Boid']) -> pygame.Vector2:
         steer : pygame.Vector2 = pygame.Vector2(0, 0)
+        for boid in boids:
+            away_boid = pygame.Vector2(1/(self.x - boid.x), 1/(self.y - boid.y))
+            steer = steer + away_boid
         return steer
 
     # Alignment: steer toward the average direction of nearby boids: 
@@ -109,6 +112,11 @@ class Boid:
     # and subtract the current boid's velocity to get the alignment steering force.
     def _alignment(self, boids: List['Boid']) -> pygame.Vector2:
         steer : pygame.Vector2 = pygame.Vector2(0, 0)
+        for boid in boids:
+            boid_vel = pygame.Vector2(boid.vx, boid.vx)
+            steer = steer + boid_vel
+        steer = steer * (1/len(boids))
+        steer = steer - pygame.Vector2(self.vx, self.vy)
         return steer
     
     # Cohesion: steer toward the average position of nearby boids: 
@@ -133,6 +141,30 @@ class Boid:
         # Use the flags in the Config class to determine which behaviors are active 
         # and apply the corresponding steering forces to the boid's velocity 
         # using the defined strengths (*_STEER_STRENGTH) for each behavior.
+        sep_boids = []
+        al_boids = []
+        coh_boids = []
+
+        for boid in boids:
+            if config.SEPARATION_ON:
+                if ((self.x - boid.x) ** 2 + (self.y - boid.y) ** 2) ** 0.5 <= config.SEPARATION_DISTANCE:
+                    sep_boids.append(boid)
+            if config.ALIGNEMENT_ON:
+                if ((self.x - boid.x) ** 2 + (self.y - boid.y) ** 2) ** 0.5 <= config.ALIGNMENT_DISTANCE:
+                    al_boids.append(boid)
+            if config.COHESION_ON:
+                if ((self.x - boid.x) ** 2 + (self.y - boid.y) ** 2) ** 0.5 <= config.COHESION_DISTANCE:
+                    al_boids.append(boid)
+
+
+        if config.SEPARATION_ON:
+            sep_steer = self._separation(sep_boids)
+            # i was planning to apply each of special vectors to current vector
+            # based on _STRENGTH, but i didnt have time
+        if config.ALIGNEMENT_ON:
+            al_steer = self._alignment(al_boids)
+        if config.COHESION_ON:
+            pass
 
         self._random_steer()
 
