@@ -215,7 +215,7 @@ def update_screen() -> None:
         dt = CLOCK.tick(CONFIG.fps)
 
         alive = []
-        respawn_count = 0
+        to_respawn = []
 
         for rect in rects:
             rect = wall_bounce(rect, dt)
@@ -235,20 +235,20 @@ def update_screen() -> None:
             #life span feature
             rect.curr_life -= dt
             if rect.curr_life <= 0:
-                respawn_count += 1
+                to_respawn.append(rect)
                 REBIRTH_SOUND.play()
             else:
                 alive.append(rect)
 
         rects = alive
 
-        for _ in range(respawn_count):
-            rects.append(MovingRect.random_square())
+        for reborn_rect in to_respawn:
+            rects.append(MovingRect.random_square(reborn_rect.height)) # i could do reborn_rect.width too, they're equal
             
 
         # interface
         fps_counter = pygame.font.Font.render(FONT, f"FPS: {CLOCK.get_fps():.2f}", True, (255, 255, 255))
-        rect_counter = pygame.font.Font.render(FONT, f"Total rects: {CONFIG.square_num}", True, (255, 255, 255))
+        # rect_counter = pygame.font.Font.render(FONT, f"Total rects: {CONFIG.square_num}", True, (255, 255, 255)) doesn't work properly after q2
 
         SCREEN.blit(fps_counter, (10, 10))
         SCREEN.blit(rect_counter, (10, 30))
