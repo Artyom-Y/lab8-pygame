@@ -72,11 +72,12 @@ class MovingRect(pygame.rect.Rect):
             self.speed = self.set_speed()
 
     @staticmethod
-    def random_square() -> MovingRect:
+    def random_square(size=None) -> MovingRect:
         x = random.randint(CONFIG.width // 4, CONFIG.width // 2 + CONFIG.width // 4)
         y = random.randint(CONFIG.height // 4, CONFIG.height // 2 + CONFIG.height // 4)
 
-        size = random.randint(CONFIG.min_square_size, CONFIG.max_square_size)
+        if size is None:
+            size = random.randint(CONFIG.min_square_size, CONFIG.max_square_size)
     
         return MovingRect(x, y, size, size)
     
@@ -112,13 +113,21 @@ def handle_events() -> None:
             IS_OPEN = False
 
 
-def create_moving_rects(n: int) -> list[MovingRect]:
-    """Create n MovingRect objects with randomized starting point"""
+def create_moving_rects(n = None, param = None) -> list[MovingRect]:
+    """Create n MovingRect objects with randomized starting point,
+    unless overridden with param."""
 
     rects = []
-    for _ in range(n):
-        rect = MovingRect.random_square()
-        rects.append(rect)
+    if n is not None:
+        for _ in range(n):
+            rect = MovingRect.random_square()
+            rects.append(rect)
+    elif param is not None:
+        nums = param.keys()
+        for num in nums:
+            for _ in range(int(num)):
+                rect = MovingRect.random_square(param[num])
+                rects.append(rect)
 
     return rects
 
@@ -197,7 +206,8 @@ def update_screen() -> None:
     if SCREEN is None or CLOCK is None:
         raise RuntimeError("Window was not initialized. Call init_window() first.")
 
-    rects = create_moving_rects(CONFIG.square_num)
+    param = {"5": 25, "10": 10, "30": 4}
+    rects = create_moving_rects(param=param)
 
     while IS_OPEN:
         handle_events()
