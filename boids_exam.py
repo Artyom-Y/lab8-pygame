@@ -101,7 +101,7 @@ class Boid:
     def _separation(self, boids: List['Boid']) -> pygame.Vector2:
         steer : pygame.Vector2 = pygame.Vector2(0, 0)
         for boid in boids:
-            away_boid = pygame.Vector2(1/(self.x - boid.x), 1/(self.y - boid.y))
+            away_boid = pygame.Vector2(1/(self.x - boid.x + 0.01), 1/(self.y - boid.y + 0.01))
             steer = steer + away_boid
         return steer
 
@@ -161,6 +161,10 @@ class Boid:
             sep_steer = self._separation(sep_boids)
             # i was planning to apply each of special vectors to current vector
             # based on _STRENGTH, but i didnt have time
+            new_vect = (pygame.Vector2(self.x, self.y) * config.SEPARATION_STEER_STRENGTH + sep_steer).normalize()
+            self.x = new_vect.x
+            self.y = new_vect.y
+
         if config.ALIGNEMENT_ON:
             al_steer = self._alignment(al_boids)
         if config.COHESION_ON:
