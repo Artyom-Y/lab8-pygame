@@ -147,6 +147,17 @@ Educational Documentation: > Within the code, add brief JSDoc comments above the
 
 ### **New Interaction**
 - **Agent Version**: 2.3
+- **Date**: 05-05-2026 14:29
+- **User**: artem.iavchunovskii@epita.fr
+- **Prompt**: go ahead and implement the plan described in the agent (port main.py to javascript)
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Added `web/index.html` as a standalone Vanilla JavaScript and HTML5 Canvas port of `main.py`, preserving the original simulation structure, helper functions, lifecycle flow, and drawing order.
+- **Context and Reasons for Changes**: The user asked to execute the prepared port plan, so the implementation was kept intentionally close to the pygame version and placed in the requested `web/` directory.
+
+### **New Interaction**
+- **Agent Version**: 2.3
 - **Date**: 13-04-2026 11:39
 - **User**: artem.iavchunovskii@epita.fr
 - **Prompt**: generate the code explorer site for this project
@@ -306,3 +317,8 @@ Educational Documentation: > Within the code, add brief JSDoc comments above the
 - **Hook Version**: 1.02
 - **Date**: 05-05-2026 14:42
 - **Prompt**: go ahead and implement the plan described in the agent (port main.py to javascript)
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 05-05-2026 15:10
+- **Prompt**: explain my code in game development terms. be concise
