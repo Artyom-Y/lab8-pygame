@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moving squares</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      background: #141414;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #1d2430 0%, #111214 55%, #0b0c0f 100%);
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: min(92vw, 800px);
+      height: min(92vw, 800px);
+      max-width: 800px;
+      max-height: 800px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #141414;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      image-rendering: auto;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="screen" width="800" height="800"></canvas>
+
+  <script>
+    "use strict";
+
+    class GameConfig {
+      constructor() {
+        this.width = 800;
+        this.height = 800;
+        this.fps = 60;
+        this.min_square_size = 5;
+        this.max_square_size = 30;
+        this.square_num = 10;
+        this.max_speed = 7;
+        this.randomize_dir_chance = 0.02;
+        this.randomize_speed_chance = 0.01;
+        this.lifespan = [10, 25];
+        this.trails_length = 30;
+      }
+    }
+
+    class Color {
+      constructor(r, g, b, a = 1) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+      }
+
+      toCss() {
+        return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
+      }
+
+      static lerp(first, second, t) {
+        return new Color(
+          Math.trunc((1 - t) * first.r + t * second.r),
+          Math.trunc((1 - t) * first.g + t * second.g),
+          Math.trunc((1 - t) * first.b + t * second.b),
+          Math.trunc((1 - t) * first.a + t * second.a)
+        );
+      }
+    }
+
+    class Vector2 {
+      constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+      }
+
+      update(x, y) {
+        this.x = x;
+        this.y = y;
+        return this;
+      }
+
+      clone() {
+        return new Vector2(this.x, this.y);
+      }
+
+      lengthSquared() {
+        return (this.x * this.x) + (this.y * this.y);
+      }
+
+      length() {
+        return Math.hypot(this.x, this.y);
+      }
+
+      normalize() {
+        const len = this.length();
+        if (!len) {
+          return new Vector2(0, 0);
+        }
+
+        return new Vector2(this.x / len, this.y / len);
+      }
+
+      rotateRad(angle) {
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        return new Vector2(
+          (this.x * cos) - (this.y * sin),
+          (this.x * sin) + (this.y * cos)
+        );
+      }
+
+      add(other) {
+        return new Vector2(this.x + other.x, this.y + other.y);
+      }
+
+      multiplyScalar(value) {
+        return new Vector2(this.x * value, this.y * value);
+      }
+    }
+
+    class Rect {
+      constructor(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+      }
+
+      get centerx() {
+        return this.x + (this.width / 2);
+      }
+
+      get centery() {
+        return this.y + (this.height / 2);
+      }
+
+      colliderect(other) {
+        return (
+          this.x < other.x + other.width &&
+          this.x + this.width > other.x &&
+          this.y < other.y + other.height &&
+          this.y + this.height > other.y
+        );
+      }
+    }
+
+    class Clock {
+      constructor(targetFps) {
+        this.targetFps = targetFps;
+        this.lastTimestamp = null;
+        this._fps = targetFps;
+      }
+
+      tick(timestamp) {
+        if (this.lastTimestamp === null) {
+          this.lastTimestamp = timestamp;
+          return 1000 / this.targetFps;
+        }
+
+        const dt = timestamp - this.lastTimestamp;
+        this.lastTimestamp = timestamp;
+
+        if (dt > 0) {
+          this._fps = 1000 / dt;
+        }
+
+        return dt;
+      }
+
+      get_fps() {
+        return this._fps;
+      }
+    }
+
+    const CONFIG = new GameConfig();
+    const BACKGROUND_COLOR = new Color(20, 20, 20);
+    let canvas = null;
+    let ctx = null;
+    let SCREEN = null;
+    let CLOCK = null;
+    let IS_OPEN = false;
+    let FONT = null;
+    let REBIRTH_SOUND = null;
+    let START_COLOR = null;
+    let END_COLOR = null;
+    let LINE_COLOR = null;
+    let rects = [];
+    let eventsInitialized = false;
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randFloat(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    /** Equivalent to the pygame.Rect subclass that stores movement, life, and trail state. */
+    class MovingRect extends Rect {
+      constructor(x, y, width, height) {
+        super(x, y, width, height);
+        this.speed = this.set_speed();
+        this.vector = this.set_vector();
+        this.area = this.width * this.height;
+        this.max_life = randInt(CONFIG.lifespan[0], CONFIG.lifespan[1]) * 1000;
+        this.curr_life = this.max_life;
+        this.color = START_COLOR;
+        this.last_positions = [];
+      }
+
+      set_speed() {
+        return randInt(Math.floor(CONFIG.max_speed / 2), CONFIG.max_speed) / this.width;
+      }
+
+      set_vector() {
+        const angle = Math.random() * Math.PI * 2;
+        return new Vector2(Math.cos(angle), Math.sin(angle)).normalize();
+      }
+
+      move_dir(dt) {
+        this.x = this.x + (this.vector.x * this.speed * dt);
+        this.y = this.y + (this.vector.y * this.speed * dt);
+      }
+
+      randomize_dir(chance) {
+        if (chance < 0.0 || chance > 1.0) {
+          throw new Error("chance must be within [0.0, 1.0]");
+        }
+
+        if (Math.random() <= chance) {
+          this.vector = this.vector.rotateRad(randFloat(-1, 1));
+        }
+      }
+
+      randomize_speed(chance) {
+        if (chance < 0.0 || chance > 1.0) {
+          throw new Error("chance must be within [0.0, 1.0]");
+        }
+
+        if (Math.random() <= chance) {
+          this.speed = this.set_speed();
+        }
+      }
+
+      check_collision(other) {
+        return this.colliderect(other);
+      }
+
+      draw_trail() {
+        ctx.save();
+        ctx.strokeStyle = LINE_COLOR.toCss();
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < CONFIG.trails_length - 1; i += 2) {
+          const start = this.last_positions[i];
+          const finish = this.last_positions[i + 1];
+
+          if (!start || !finish) {
+            continue;
+          }
+
+          if (
+            Math.abs(start[0] - finish[0]) < CONFIG.width / 2 &&
+            Math.abs(start[1] - finish[1]) < CONFIG.height / 2
+          ) {
+            ctx.beginPath();
+            ctx.moveTo(start[0], start[1]);
+            ctx.lineTo(finish[0], finish[1]);
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+      }
+
+      static random_square(size = null) {
+        const x = randInt(CONFIG.width / 4, (CONFIG.width / 2) + (CONFIG.width / 4));
+        const y = randInt(CONFIG.height / 4, (CONFIG.height / 2) + (CONFIG.height / 4));
+
+        if (size === null || size === undefined) {
+          size = randInt(CONFIG.min_square_size, CONFIG.max_square_size);
+        }
+
+        return new MovingRect(x, y, size, size);
+      }
+
+      static lerp_color(first, second, t) {
+        return Color.lerp(first, second, t);
+      }
+    }
+
+    /** Equivalent to pygame.time.Clock, used here to derive dt and display FPS. */
+    class GameClock extends Clock {
+      constructor(targetFps) {
+        super(targetFps);
+      }
+    }
+
+    function init_window() {
+      canvas = document.getElementById("screen");
+
+      if (!canvas) {
+        throw new Error("Canvas element was not found.");
+      }
+
+      canvas.width = CONFIG.width;
+      canvas.height = CONFIG.height;
+      ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("CanvasRenderingContext2D is not available.");
+      }
+
+      SCREEN = ctx;
+      document.title = "Moving squares";
+      FONT = "18px Arial";
+      CLOCK = new GameClock(CONFIG.fps);
+      REBIRTH_SOUND = new Audio("../media/pop.mp3");
+      REBIRTH_SOUND.volume = 0.5;
+      REBIRTH_SOUND.preload = "auto";
+      START_COLOR = new Color(66, 135, 245);
+      END_COLOR = new Color(245, 66, 66);
+      LINE_COLOR = new Color(100, 100, 255);
+      IS_OPEN = true;
+
+      ctx.textBaseline = "top";
+      ctx.imageSmoothingEnabled = true;
+    }
+
+    function handle_events() {
+      if (eventsInitialized) {
+        return;
+      }
+
+      const stop = () => {
+        IS_OPEN = false;
+      };
+
+      window.addEventListener("beforeunload", stop);
+      window.addEventListener("pagehide", stop);
+      eventsInitialized = true;
+    }
+
+    function create_moving_rects(n = null, param = null) {
+      const created = [];
+
+      if (n !== null && n !== undefined) {
+        for (let i = 0; i < n; i += 1) {
+          created.push(MovingRect.random_square());
+        }
+      } else if (param !== null && param !== undefined) {
+        const nums = Object.keys(param);
+
+        for (const num of nums) {
+          for (let i = 0; i < Number(num); i += 1) {
+            created.push(MovingRect.random_square(param[num]));
+          }
+        }
+      }
+
+      return created;
+    }
+
+    function wall_bounce(rect, dt) {
+      const new_x = rect.x + (rect.vector.x * rect.speed * dt);
+      const new_y = rect.y + (rect.vector.y * rect.speed * dt);
+
+      if (new_x <= 0 || new_x + rect.width >= CONFIG.width) {
+        rect.vector.x *= -1;
+        rect.x = Math.max(0, Math.min(rect.x, CONFIG.width - rect.width));
+      }
+
+      if (new_y <= 0 || new_y + rect.height >= CONFIG.height) {
+        rect.vector.y *= -1;
+        rect.y = Math.max(0, Math.min(rect.y, CONFIG.height - rect.height));
+      }
+
+      return rect;
+    }
+
+    function wall_warp(rect, dt) {
+      if (rect.x < rect.width) {
+        rect.x = CONFIG.width - rect.width;
+      } else if (rect.x > CONFIG.width) {
+        rect.x = rect.width;
+      }
+
+      if (rect.y < rect.height) {
+        rect.y = CONFIG.height - rect.height;
+      } else if (rect.y > CONFIG.height) {
+        rect.y = rect.height;
+      }
+
+      return rect;
+    }
+
+    function find_threat_and_prey(running_rect, current_rects) {
+      const sq_distance_to_rect = (other) => {
+        return ((other.centerx - running_rect.centerx) ** 2) + ((other.centery - running_rect.centery) ** 2);
+      };
+
+      const running_rect_area = running_rect.area;
+      let threat = null;
+      let min_threat_dist = Number.POSITIVE_INFINITY;
+      let prey = null;
+      let min_prey_dist = Number.POSITIVE_INFINITY;
+
+      for (const rect of current_rects) {
+        if (rect === running_rect) {
+          continue;
+        }
+
+        const dist = sq_distance_to_rect(rect);
+
+        if (rect.area > running_rect_area && dist < min_threat_dist) {
+          threat = rect;
+          min_threat_dist = dist;
+        } else if (rect.area < running_rect_area && dist < min_prey_dist) {
+          prey = rect;
+          min_prey_dist = dist;
+        }
+      }
+
+      return [threat, prey];
+    }
+
+    function run_and_chase_vect(rect, threat, prey, k) {
+      const run_vect = new Vector2();
+      const chase_vect = new Vector2();
+      let danger = 0.5;
+
+      if (threat) {
+        run_vect.update(rect.x - threat.x, rect.y - threat.y);
+
+        const dist = run_vect.lengthSquared();
+        danger = k * ((threat.width * threat.height) / (dist + 0.001));
+
+        if (danger > 1) {
+          danger = 1;
+        } else if (danger < 0) {
+          danger = 0;
+        }
+      }
+
+      if (prey) {
+        chase_vect.update(prey.x - rect.x, prey.y - rect.y);
+      }
+
+      let new_vect = run_vect.add(chase_vect);
+
+      if (new_vect.length()) {
+        new_vect = new_vect.normalize();
+      }
+
+      return rect.vector.multiplyScalar(1 - danger).add(new_vect.multiplyScalar(danger));
+    }
+
+    function play_rebirth_sound() {
+      if (!REBIRTH_SOUND) {
+        return;
+      }
+
+      try {
+        REBIRTH_SOUND.currentTime = 0;
+      } catch (_error) {
+        // Ignore timing resets that happen before the audio metadata is ready.
+      }
+
+      const promise = REBIRTH_SOUND.play();
+      if (promise && typeof promise.catch === "function") {
+        promise.catch(() => {});
+      }
+    }
+
+    /** Equivalent to the pygame while loop, including CLOCK.tick(), drawing, and display flip. */
+    function update_screen(timestamp) {
+      if (!IS_OPEN) {
+        return;
+      }
+
+      handle_events();
+      const dt = CLOCK.tick(timestamp);
+
+      ctx.fillStyle = BACKGROUND_COLOR.toCss();
+      ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+
+      const alive = [];
+      const to_respawn = [];
+
+      for (const rect of rects) {
+        rect.last_positions.push([rect.x, rect.y]);
+
+        if (rect.last_positions.length > CONFIG.trails_length) {
+          rect.last_positions.shift();
+          rect.draw_trail();
+        }
+
+        wall_bounce(rect, dt);
+        rect.move_dir(dt);
+
+        const t = rect.curr_life / rect.max_life;
+        rect.color = MovingRect.lerp_color(END_COLOR, START_COLOR, t);
+
+        ctx.fillStyle = rect.color.toCss();
+        ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+        rect.randomize_dir(CONFIG.randomize_dir_chance);
+        rect.randomize_speed(CONFIG.randomize_speed_chance);
+
+        const [threat, prey] = find_threat_and_prey(rect, rects);
+        rect.vector = run_and_chase_vect(rect, threat, prey, 5);
+
+        if (prey) {
+          if (rect.check_collision(prey)) {
+            prey.curr_life = 0;
+
+            if (rect.area <= 2 * (CONFIG.max_square_size ** 2)) {
+              rect.width += Math.floor(prey.width / 3);
+              rect.height += Math.floor(prey.height / 3);
+              rect.set_speed();
+            }
+          }
+        }
+
+        rect.curr_life -= dt;
+
+        if (rect.curr_life <= 0) {
+          to_respawn.push(rect);
+          play_rebirth_sound();
+        } else {
+          alive.push(rect);
+        }
+      }
+
+      rects = alive;
+
+      for (const reborn_rect of to_respawn) {
+        rects.push(MovingRect.random_square(reborn_rect.height));
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = FONT;
+      ctx.fillText(`FPS: ${CLOCK.get_fps().toFixed(2)}`, 10, 10);
+
+      if (IS_OPEN) {
+        requestAnimationFrame(update_screen);
+      }
+    }
+
+    function main() {
+      init_window();
+      handle_events();
+      rects = create_moving_rects(null, { "5": 25, "10": 10, "30": 4 });
+      requestAnimationFrame(update_screen);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", main);
+    } else {
+      main();
+    }
+  </script>
+</body>
+</html>
